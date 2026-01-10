@@ -46,6 +46,13 @@ const ScoreCard = ({ match, onClose }) => {
                         </div>
                     </div>
 
+                    {/* Toss Result */}
+                    {(match.status === 'live' || match.status === 'completed') && match.tossResult && (
+                        <div className={`text-center p-2 rounded font-bold mb-4 ${match.status === 'live' ? 'bg-cyan-900/30 border border-cyan-800 text-cyan-200' : 'bg-slate-800 border border-slate-700 text-gray-300'}`}>
+                            {match.tossResult}
+                        </div>
+                    )}
+
                     {/* Batting Card */}
                     {match.batting && (
                         <div className="animate-slide-up">

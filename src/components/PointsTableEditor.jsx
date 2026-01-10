@@ -57,50 +57,61 @@ const PointsTableEditor = () => {
     };
 
     return (
-        <div className="bg-slate-900 p-6 rounded-lg shadow-md border border-slate-800 mb-8">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-white">Manage Points Table</h2>
+        <div className="glass-card p-6 border-l-4 border-l-orange-500 h-full">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <span className="w-2 h-8 bg-orange-500 rounded-full inline-block"></span>
+                    Manage Points Table
+                </h2>
                 {isDirty && (
                     <button
                         onClick={handleSave}
-                        className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-green-700 transition-colors"
+                        className="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-5 py-2.5 rounded-full flex items-center gap-2 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all font-bold animate-pulse"
                     >
-                        <Save size={16} /> Save Changes
+                        <Save size={18} /> Save Changes
                     </button>
                 )}
                 {!isDirty && (
                     <button
                         onClick={handleAddTeam}
-                        className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700 transition-colors"
+                        className="bg-white/10 text-gray-300 px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-white/20 transition-all font-semibold"
                     >
-                        <Plus size={16} /> Add Team
+                        <Plus size={18} /> Add Team
                     </button>
                 )}
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-xl border border-white/5">
                 <table className="w-full text-sm text-center">
-                    <thead className="bg-slate-800 text-gray-400 uppercase text-xs">
+                    <thead className="bg-white/5 text-gray-300 uppercase text-xs tracking-wider font-bold">
                         <tr>
-                            <th className="px-3 py-2 text-left">Team</th>
-                            <th className="px-2 py-2">P</th>
-                            <th className="px-2 py-2">W</th>
-                            <th className="px-2 py-2">L</th>
-                            <th className="px-2 py-2">T</th>
-                            <th className="px-2 py-2">NRR</th>
-                            <th className="px-2 py-2">Pts (Calc)</th>
+                            <th className="px-4 py-3 text-left">Team</th>
+                            <th className="px-2 py-3 text-purple-300">P</th>
+                            <th className="px-2 py-3 text-green-400">W</th>
+                            <th className="px-2 py-3 text-red-400">L</th>
+                            <th className="px-2 py-3 text-yellow-400">T</th>
+                            <th className="px-2 py-3 text-blue-300">NRR</th>
+                            <th className="px-2 py-3 text-orange-400">Pts</th>
+                            <th className="px-2 py-3"></th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800">
+                    <tbody className="divide-y divide-white/5">
                         {localTable.map((team, idx) => (
-                            <tr key={idx} className="hover:bg-slate-800/50">
-                                <td className="px-3 py-2 text-left font-medium text-gray-200">{team.team}</td>
+                            <tr key={idx} className="hover:bg-white/[0.03] transition-colors group">
+                                <td className="px-3 py-2 text-left">
+                                    <input
+                                        type="text"
+                                        value={team.team}
+                                        onChange={(e) => handleChange(idx, 'team', e.target.value)}
+                                        className="w-full bg-transparent border-b border-transparent focus:border-blue-500 text-white p-1 outline-none font-medium min-w-[150px] transition-colors"
+                                    />
+                                </td>
                                 <td className="px-1 py-1">
                                     <input
                                         type="number"
                                         value={team.played}
                                         onChange={(e) => handleChange(idx, 'played', Number(e.target.value))}
-                                        className="w-12 bg-slate-800 border border-slate-600 rounded text-center text-white p-1 focus:border-blue-500 outline-none"
+                                        className="w-12 bg-transparent text-center text-gray-400 focus:text-white p-1 outline-none"
                                     />
                                 </td>
                                 <td className="px-1 py-1">
@@ -108,7 +119,7 @@ const PointsTableEditor = () => {
                                         type="number"
                                         value={team.won}
                                         onChange={(e) => handleChange(idx, 'won', Number(e.target.value))}
-                                        className="w-12 bg-slate-800 border border-slate-600 rounded text-center text-white p-1 focus:border-blue-500 outline-none"
+                                        className="w-12 bg-transparent text-center text-gray-400 focus:text-green-400 font-bold p-1 outline-none"
                                     />
                                 </td>
                                 <td className="px-1 py-1">
@@ -116,7 +127,7 @@ const PointsTableEditor = () => {
                                         type="number"
                                         value={team.lost}
                                         onChange={(e) => handleChange(idx, 'lost', Number(e.target.value))}
-                                        className="w-12 bg-slate-800 border border-slate-600 rounded text-center text-white p-1 focus:border-blue-500 outline-none"
+                                        className="w-12 bg-transparent text-center text-gray-400 focus:text-red-400 font-bold p-1 outline-none"
                                     />
                                 </td>
                                 <td className="px-1 py-1">
@@ -124,7 +135,7 @@ const PointsTableEditor = () => {
                                         type="number"
                                         value={team.tied || 0}
                                         onChange={(e) => handleChange(idx, 'tied', Number(e.target.value))}
-                                        className="w-12 bg-slate-800 border border-slate-600 rounded text-center text-white p-1 focus:border-blue-500 outline-none"
+                                        className="w-12 bg-transparent text-center text-gray-400 focus:text-yellow-400 p-1 outline-none"
                                     />
                                 </td>
                                 <td className="px-1 py-1">
@@ -133,16 +144,16 @@ const PointsTableEditor = () => {
                                         step="0.001"
                                         value={team.nrr}
                                         onChange={(e) => handleChange(idx, 'nrr', e.target.value)}
-                                        className="w-16 bg-slate-800 border border-slate-600 rounded text-center text-white p-1 focus:border-blue-500 outline-none"
+                                        className="w-16 bg-transparent text-center text-gray-400 focus:text-blue-300 p-1 outline-none"
                                     />
                                 </td>
-                                <td className="px-2 py-2 font-bold text-blue-400">
+                                <td className="px-2 py-2 font-black text-orange-400 text-lg">
                                     {team.points}
                                 </td>
                                 <td className="px-2 py-2">
                                     <button
                                         onClick={() => handleDeleteTeam(idx)}
-                                        className="text-red-500 hover:text-red-400 p-1 rounded hover:bg-red-500/10 transition-colors"
+                                        className="text-gray-600 hover:text-red-400 p-2 rounded-full hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
                                     >
                                         <Trash2 size={16} />
                                     </button>

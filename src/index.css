@@ -4,6 +4,34 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-gray-100;
+    @apply bg-slate-950 text-gray-100 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 min-h-screen;
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
   }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.glass-card {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl;
+}
+
+.glass-input {
+  @apply bg-slate-950/50 border border-white/10 text-white placeholder-gray-500 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all;
+}
+
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400;
 }

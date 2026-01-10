@@ -22,8 +22,6 @@ export const GameProvider = ({ children }) => {
         return saved ? JSON.parse(saved) : INITIAL_POINTS;
     });
 
-    const [allTeams, setAllTeams] = useState(ALL_TEAMS);
-
     const [isAdmin, setIsAdmin] = useState(() => {
         return localStorage.getItem('rpl_is_admin') === 'true';
     });
@@ -44,6 +42,9 @@ export const GameProvider = ({ children }) => {
     useEffect(() => {
         localStorage.setItem('rpl_is_admin', isAdmin);
     }, [isAdmin]);
+
+    // Derived state
+    const allTeams = pointsTable.map(team => team.team);
 
     // Actions
     const login = (username, password) => {
