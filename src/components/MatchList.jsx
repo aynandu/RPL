@@ -90,7 +90,7 @@ const MatchList = ({ onSelectMatch }) => {
                 All Matches
             </h2>
             <div className="space-y-4">
-                {matches.map(match => (
+                {[...matches].sort((a, b) => b.id - a.id).map(match => (
                     <MatchCard
                         key={match.id}
                         match={match}

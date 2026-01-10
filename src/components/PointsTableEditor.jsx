@@ -68,6 +68,14 @@ const PointsTableEditor = () => {
                         <Save size={16} /> Save Changes
                     </button>
                 )}
+                {!isDirty && (
+                    <button
+                        onClick={handleAddTeam}
+                        className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700 transition-colors"
+                    >
+                        <Plus size={16} /> Add Team
+                    </button>
+                )}
             </div>
 
             <div className="overflow-x-auto">

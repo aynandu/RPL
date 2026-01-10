@@ -4,6 +4,14 @@ import { useGame } from '../context/GameContext';
 const PointsTable = () => {
     const { pointsTable } = useGame();
 
+    // Sort teams: Primary by Points (Desc), Secondary by NRR (Desc)
+    const sortedTable = [...pointsTable].sort((a, b) => {
+        if (b.points !== a.points) {
+            return b.points - a.points;
+        }
+        return b.nrr - a.nrr;
+    });
+
     return (
         <div className="bg-slate-900 rounded-xl shadow-md overflow-hidden mb-6 border border-slate-800">
             <div className="bg-blue-600 p-3 text-white font-bold">
@@ -23,7 +31,7 @@ const PointsTable = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                        {pointsTable.map((team, idx) => (
+                        {sortedTable.map((team, idx) => (
                             <tr key={idx} className="hover:bg-slate-800 transition-colors">
                                 <td className="px-3 py-2 font-medium text-gray-100">{team.team}</td>
                                 <td className="px-2 py-2 text-center">{team.played}</td>

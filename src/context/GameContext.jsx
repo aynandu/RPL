@@ -63,7 +63,14 @@ export const GameProvider = ({ children }) => {
     };
 
     const addMatch = (match) => {
-        setMatches(prev => [...prev, { ...match, id: Date.now() }]);
+        setMatches(prev => {
+            const maxId = prev.length > 0 ? Math.max(...prev.map(m => m.id)) : 0;
+            // Ensure nextId is reasonable. If maxId is huge (timestamp), this will continue being huge.
+            // But for new clean starts, it works.
+            // If we want to force small numbers even if timestamps exist, we'd need to re-index, which is dangerous.
+            // Let's stick to safe increment.
+            return [...prev, { ...match, id: maxId + 1 }];
+        });
     };
 
     const deleteMatch = (id) => {
