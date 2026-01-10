@@ -16,10 +16,10 @@ const MatchCard = ({ match, onClick }) => {
                 {/* Status Badge */}
                 <div className="flex justify-between items-center mb-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-lg ${isLive
-                            ? 'bg-red-600 text-white animate-pulse shadow-red-500/50'
-                            : match.status === 'completed'
-                                ? 'bg-green-600/20 text-green-400 border border-green-500/30'
-                                : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                        ? 'bg-red-600 text-white animate-pulse shadow-red-500/50'
+                        : match.status === 'completed'
+                            ? 'bg-green-600/20 text-green-400 border border-green-500/30'
+                            : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
                         }`}>
                         {match.status}
                     </span>
@@ -29,9 +29,15 @@ const MatchCard = ({ match, onClick }) => {
                     </span>
                 </div>
 
-                {/* Date & Time */}
-                <div className="text-center text-xs text-gray-400 font-bold uppercase tracking-wider mb-4 border-b border-white/5 pb-2">
-                    {match.date ? new Date(match.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                {/* Date & Time & Stadium */}
+                <div className="text-center mb-4 border-b border-white/5 pb-2">
+                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+                        {match.date ? new Date(match.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                    </div>
+                    <div className="text-[10px] text-blue-400/80 font-medium uppercase tracking-widest mt-1 flex items-center justify-center gap-1">
+                        <span className="w-1 h-1 rounded-full bg-blue-500"></span>
+                        {match.stadium || 'Indoor Stadium, Pramdom'}
+                    </div>
                 </div>
 
                 {/* Live/Completed Toss Result */}

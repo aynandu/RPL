@@ -149,6 +149,18 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                             />
                         </div>
                         <div className="md:col-span-2">
+                            <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Stadium</label>
+                            <select
+                                name="stadium"
+                                value={formData.stadium || 'Indoor Stadium, Pramdom'}
+                                onChange={handleChange}
+                                className="w-full glass-input p-2 rounded-lg text-gray-300"
+                            >
+                                <option value="Indoor Stadium, Pramdom" className="bg-slate-900">Indoor Stadium, Pramdom</option>
+                                <option value="Turf, Pathanamthitta" className="bg-slate-900">Turf, Pathanamthitta</option>
+                            </select>
+                        </div>
+                        <div className="md:col-span-2">
                             <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Toss Result</label>
                             <input
                                 type="text"

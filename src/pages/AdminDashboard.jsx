@@ -46,7 +46,9 @@ const AdminDashboard = () => {
             batting: null,
             bowling: null,
             manOfTheMatch: '',
+            manOfTheMatch: '',
             tossResult: '',
+            stadium: 'Indoor Stadium, Pramdom',
         };
         addMatch(newMatch);
     };
