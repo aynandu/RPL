@@ -23,6 +23,8 @@ export const INITIAL_MATCHES = [
         secondInningsBowling: [
             { name: "Jessica Pearson", overs: 4, runs: 30, wickets: 2 }
         ],
+        innings1Overs: [], // Will store [ { over: 1, balls: ["1", "4", "W", ...] } ]
+        innings2Overs: [],
         history: []
     },
     {

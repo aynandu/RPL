@@ -202,6 +202,47 @@ const ScoreCard = ({ match, onClose }) => {
                             </table>
                         </div>
                     </div>
+
+                    {/* Over-by-Over Scoring Display */}
+                    <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                        <h3 className="text-lg font-bold text-gray-200 mb-3 border-b border-slate-700 pb-2 flex justify-between items-center">
+                            <span>Over-by-Over Analysis</span>
+                            <span className="text-xs font-normal text-gray-400 uppercase tracking-wider">Innings {activeTab === 'innings1' ? '1' : '2'}</span>
+                        </h3>
+                        {((activeTab === 'innings1' ? match.innings1Overs : match.innings2Overs) || []).length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {(activeTab === 'innings1' ? match.innings1Overs : match.innings2Overs).map((overData, idx) => (
+                                    <div key={idx} className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+                                        <div className="flex justify-between items-center mb-2 border-b border-slate-700 pb-1">
+                                            <span className="text-xs font-bold text-gray-400 uppercase">Over {overData.over}</span>
+                                            <span className="text-xs font-mono font-bold text-blue-400">
+                                                {overData.balls.reduce((sum, ball) => sum + (Number(ball) || 0), 0)} runs
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {overData.balls.map((ball, bIdx) => (
+                                                <div key={bIdx} className={`
+                                                    w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
+                                                    ${ball === 'W' || ball === 'w'
+                                                        ? 'bg-red-500/20 text-red-400 border border-red-500/50'
+                                                        : (ball === '4' || ball === '6'
+                                                            ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                                                            : 'bg-slate-700 text-gray-300')
+                                                    }
+                                                `}>
+                                                    {ball}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50 text-gray-500 italic">
+                                No over-by-over data available.
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

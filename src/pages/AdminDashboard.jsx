@@ -124,10 +124,11 @@ const AdminDashboard = () => {
                     </div>
 
                     <div className="space-y-4 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
-                        {matches.map(match => (
+                        {[...matches].sort((a, b) => b.id - a.id).map(match => (
                             <div key={match.id} className="bg-white/5 border border-white/5 hover:border-purple-500/30 p-5 rounded-2xl flex flex-col gap-4 transition-all hover:bg-white/[0.07]">
                                 <div className="flex justify-between items-start">
                                     <div>
+                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Match #{match.id}</div>
                                         <h3 className="font-bold text-xl text-white mb-1">{match.team1} <span className="text-gray-500 text-sm">vs</span> {match.team2}</h3>
                                         <div className="text-sm space-y-1">
                                             <div className="flex items-center gap-2">

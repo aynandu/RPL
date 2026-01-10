@@ -11,6 +11,34 @@ const ScoreUpdateForm = ({ match, onClose }) => {
         setFormData(match);
     }, [match]);
 
+    // Initialize overs arrays based on selection
+    useEffect(() => {
+        const totalOvers = parseInt(formData.oversChoosen) || 6;
+
+        ['innings1Overs', 'innings2Overs'].forEach(key => {
+            if (!formData[key] || formData[key].length !== totalOvers) {
+                // If it doesn't exist or length changed (e.g. 6 to 8), re-init
+                // Ideally preserve existing data if growing, but for simplicity re-init or check length
+                setFormData(prev => {
+                    const currentOvers = prev[key] || [];
+                    if (currentOvers.length === totalOvers) return prev; // No change needed
+
+                    let newOvers = [...currentOvers];
+                    if (newOvers.length < totalOvers) {
+                        // Add more
+                        for (let i = newOvers.length; i < totalOvers; i++) {
+                            newOvers.push({ over: i + 1, balls: Array(6).fill("") });
+                        }
+                    } else {
+                        // Truncate (if switched 8 -> 6)
+                        newOvers = newOvers.slice(0, totalOvers);
+                    }
+                    return { ...prev, [key]: newOvers };
+                });
+            }
+        });
+    }, [formData.oversChoosen]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -203,6 +231,18 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                             >
                                 <option value="Indoor Stadium, Pramdom" className="bg-slate-900">Indoor Stadium, Pramdom</option>
                                 <option value="Turf, Pathanamthitta" className="bg-slate-900">Turf, Pathanamthitta</option>
+                            </select>
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Over Choosen</label>
+                            <select
+                                name="oversChoosen"
+                                value={formData.oversChoosen || '6 Over'}
+                                onChange={handleChange}
+                                className="w-full glass-input p-2 rounded-lg text-gray-300"
+                            >
+                                <option value="6 Over" className="bg-slate-900">6 Over</option>
+                                <option value="8 Over" className="bg-slate-900">8 Over</option>
                             </select>
                         </div>
                         <div className="md:col-span-2">
@@ -452,6 +492,83 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 ))}
                             </div>
                         )}
+                    </div>
+
+                    {/* Detailed Over Scoring */}
+                    <div className="border-t border-white/10 pt-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-white flex items-center gap-2">
+                                <span className="w-1.5 h-6 bg-green-500 rounded-full inline-block"></span>
+                                Over-by-Over Scoring ({activeTab === 'innings1' ? '1st Innings' : '2nd Innings'})
+                            </h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {(activeTab === 'innings1' ? formData.innings1Overs : formData.innings2Overs)?.map((overData, overIdx) => (
+                                <div key={overIdx} className="glass-card p-3 rounded-xl border border-white/10">
+                                    <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-1">
+                                        <h4 className="font-bold text-sm text-gray-300">Over {overData.over}</h4>
+                                        <span className="text-xs font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">
+                                            Total: {overData.balls.reduce((sum, ball) => sum + (Number(ball) || 0), 0)}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-6 gap-1 mb-2">
+                                        {overData.balls.map((ball, ballIdx) => (
+                                            <input
+                                                key={ballIdx}
+                                                type="text"
+                                                value={ball}
+                                                onChange={(e) => {
+                                                    const key = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
+                                                    setFormData(prev => {
+                                                        const newOvers = [...(prev[key] || [])];
+                                                        const newBalls = [...newOvers[overIdx].balls];
+                                                        newBalls[ballIdx] = e.target.value;
+                                                        newOvers[overIdx] = { ...newOvers[overIdx], balls: newBalls };
+                                                        return { ...prev, [key]: newOvers };
+                                                    });
+                                                }}
+                                                className="w-full glass-input p-1.5 rounded text-center text-xs font-bold"
+                                                placeholder="0"
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const key = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
+                                                setFormData(prev => {
+                                                    const newOvers = [...(prev[key] || [])];
+                                                    const newBalls = [...newOvers[overIdx].balls, ""];
+                                                    newOvers[overIdx] = { ...newOvers[overIdx], balls: newBalls };
+                                                    return { ...prev, [key]: newOvers };
+                                                });
+                                            }}
+                                            className="w-full py-1 text-xs bg-green-500/10 hover:bg-green-500/20 rounded transition-colors text-green-400 hover:text-green-300 flex items-center justify-center gap-1"
+                                        >
+                                            <span>+ Insert</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const key = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
+                                                setFormData(prev => {
+                                                    const newOvers = [...(prev[key] || [])];
+                                                    if (newOvers[overIdx].balls.length > 0) {
+                                                        const newBalls = newOvers[overIdx].balls.slice(0, -1);
+                                                        newOvers[overIdx] = { ...newOvers[overIdx], balls: newBalls };
+                                                    }
+                                                    return { ...prev, [key]: newOvers };
+                                                });
+                                            }}
+                                            className="w-full py-1 text-xs bg-red-500/10 hover:bg-red-500/20 rounded transition-colors text-red-400 hover:text-red-300 flex items-center justify-center gap-1"
+                                        >
+                                            <span>- Delete</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </form>
 
