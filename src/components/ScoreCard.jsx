@@ -1,12 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
 const ScoreCard = ({ match, onClose }) => {
+    const [activeTab, setActiveTab] = useState('innings1');
+
     if (!match) return null;
+
+    // Helper to get current innings data
+    const getBattingData = () => {
+        if (activeTab === 'innings1') return match.batting;
+        return match.secondInningsBatting || [];
+    };
+
+    const getBowlingData = () => {
+        if (activeTab === 'innings1') return match.bowling;
+        // The bowling team for 2nd innings is Team 1, so we might store it in secondInningsBowling
+        // But wait, usually 'bowling' in match object corresponds to the bowling of the team currently bowling.
+        // In the update form:
+        // Tab 1 (Team 1 batting): Batting = Team 1, Bowling = Team 2
+        // Tab 2 (Team 2 batting): Batting = Team 2, Bowling = Team 1
+        // So I just need to access the stored keys.
+        return match.secondInningsBowling || [];
+    };
+
+    const currentBatting = getBattingData();
+    const currentBowling = getBowlingData();
+
+    // Determine which team is batting/bowling for the label
+    const battingTeam = activeTab === 'innings1' ? match.team1 : match.team2;
+    const bowlingTeam = activeTab === 'innings1' ? match.team2 : match.team1;
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in">
-            <div className="bg-slate-900 w-full max-w-4xl h-[90vh] overflow-y-auto rounded-2xl shadow-2xl relative border border-slate-700">
+            <div className="bg-slate-900 w-full max-w-4xl h-[90vh] overflow-y-auto no-scrollbar rounded-2xl shadow-2xl relative border border-slate-700">
                 {/* Header */}
                 <div className="sticky top-0 bg-slate-800 text-white p-4 flex justify-between items-center z-10 border-b border-slate-700">
                     <div>
@@ -16,6 +42,12 @@ const ScoreCard = ({ match, onClose }) => {
                             <p className="text-xs opacity-70 mt-1 font-mono">
                                 {match.date ? new Date(match.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                             </p>
+                            <div className="flex items-center gap-1.5 mt-1 opacity-70">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                                <p className="text-xs font-medium uppercase tracking-wider text-blue-300">
+                                    {match.stadium || 'Indoor Stadium, Pramdom'}
+                                </p>
+                            </div>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
@@ -53,73 +85,123 @@ const ScoreCard = ({ match, onClose }) => {
                         </div>
                     )}
 
+                    {/* Innings Tabs */}
+                    <div className="flex gap-4 border-b border-slate-700">
+                        <button
+                            onClick={() => setActiveTab('innings1')}
+                            className={`pb-2 px-4 font-bold transition-colors border-b-2 ${activeTab === 'innings1'
+                                ? 'border-yellow-500 text-yellow-500'
+                                : 'border-transparent text-gray-400 hover:text-gray-300'
+                                }`}
+                        >
+                            1st Innings ({match.team1})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('innings2')}
+                            className={`pb-2 px-4 font-bold transition-colors border-b-2 ${activeTab === 'innings2'
+                                ? 'border-yellow-500 text-yellow-500'
+                                : 'border-transparent text-gray-400 hover:text-gray-300'
+                                }`}
+                        >
+                            2nd Innings ({match.team2})
+                        </button>
+                    </div>
+
                     {/* Batting Card */}
-                    {match.batting && (
-                        <div className="animate-slide-up">
-                            <h3 className="text-lg font-bold text-gray-200 mb-3 border-b border-slate-700 pb-2">Batting Scorecard (Live)</h3>
-                            <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                                <table className="w-full text-sm text-gray-300">
-                                    <thead className="bg-slate-700 text-gray-300">
-                                        <tr>
-                                            <th className="p-3 text-left">Batter</th>
-                                            <th className="p-3 text-right">R</th>
-                                            <th className="p-3 text-right">B</th>
-                                            <th className="p-3 text-right">4s</th>
-                                            <th className="p-3 text-right">6s</th>
-                                            <th className="p-3 text-right">SR</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-700">
-                                        {[match.batting.striker, match.batting.nonStriker].filter(Boolean).map((batter, idx) => (
-                                            <tr key={idx} className={idx === 0 ? "bg-blue-900/20" : ""}>
-                                                <td className="p-3 font-medium flex items-center text-gray-100">
-                                                    {batter.name} {idx === 0 && <span className="ml-2 text-blue-400">*</span>}
+                    <div className="animate-slide-up">
+                        <h3 className="text-lg font-bold text-gray-200 mb-3 border-b border-slate-700 pb-2 flex justify-between items-center">
+                            <span>Batting: {battingTeam}</span>
+                            <span className="text-xs font-normal text-gray-400 uppercase tracking-wider">Innings {activeTab === 'innings1' ? '1' : '2'}</span>
+                        </h3>
+                        <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+                            <table className="w-full text-sm text-gray-300">
+                                <thead className="bg-slate-700 text-gray-300">
+                                    <tr>
+                                        <th className="p-3 text-left">Batter</th>
+                                        <th className="p-3 text-right">R</th>
+                                        <th className="p-3 text-right">B</th>
+                                        <th className="p-3 text-right">4s</th>
+                                        <th className="p-3 text-right">6s</th>
+                                        <th className="p-3 text-right">SR</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {(currentBatting && Array.isArray(currentBatting)
+                                        ? currentBatting.filter(b => b && b.name)
+                                        : (currentBatting ? [currentBatting.striker, currentBatting.nonStriker] : []
+                                        ).filter(Boolean)).map((batter, idx) => (
+                                            <tr key={idx} className={idx % 2 === 0 ? "bg-slate-800" : "bg-slate-800/50"}>
+                                                <td className="p-3">
+                                                    <div className="font-medium text-gray-100">{batter.name}</div>
+                                                    <div className="text-xs text-gray-400">
+                                                        {(!batter.dismissalType || batter.dismissalType === 'notOut') && <span className="text-blue-400 font-bold">Not Out</span>}
+                                                        {batter.dismissalType === 'lbw' && `lbw b ${batter.dismissalBowler}`}
+                                                        {batter.dismissalType === 'caught' && `c ${batter.dismissalFielder} b ${batter.dismissalBowler}`}
+                                                        {batter.dismissalType === 'stumping' && `st ${batter.dismissalFielder} b ${batter.dismissalBowler}`}
+                                                        {batter.dismissalType === 'runOut' && `run out (${batter.dismissalFielder})`}
+                                                        {batter.dismissalType === 'mankad' && `mankad (${batter.dismissalFielder || 'bowler'})`}
+                                                    </div>
                                                 </td>
-                                                <td className="p-3 text-right font-bold text-white">{batter.runs}</td>
-                                                <td className="p-3 text-right">{batter.balls}</td>
-                                                <td className="p-3 text-right">{batter.fours}</td>
-                                                <td className="p-3 text-right">{batter.sixes}</td>
-                                                <td className="p-3 text-right">{((batter.runs / batter.balls) * 100).toFixed(1)}</td>
+                                                <td className="p-3 text-right font-bold text-white">{batter.runs || 0}</td>
+                                                <td className="p-3 text-right">{batter.balls || 0}</td>
+                                                <td className="p-3 text-right">{batter.fours || 0}</td>
+                                                <td className="p-3 text-right">{batter.sixes || 0}</td>
+                                                <td className="p-3 text-right">{(batter.balls > 0 ? ((batter.runs / batter.balls) * 100).toFixed(1) : '0.0')}</td>
                                             </tr>
                                         ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    {(!currentBatting || (Array.isArray(currentBatting) && currentBatting.length === 0)) && (
+                                        <tr>
+                                            <td colSpan="6" className="p-4 text-center text-gray-500 italic">No batting data available yet.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
-                    )}
+                    </div>
 
                     {/* Bowling Card */}
-                    {match.bowling && (
-                        <div className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                            <h3 className="text-lg font-bold text-gray-200 mb-3 border-b border-slate-700 pb-2">Bowling Scorecard (Live)</h3>
-                            <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                                <table className="w-full text-sm text-gray-300">
-                                    <thead className="bg-slate-700 text-gray-300">
+                    <div className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                        <h3 className="text-lg font-bold text-gray-200 mb-3 border-b border-slate-700 pb-2 flex justify-between items-center">
+                            <span>Bowling: {bowlingTeam}</span>
+                            <span className="text-xs font-normal text-gray-400 uppercase tracking-wider">Innings {activeTab === 'innings1' ? '1' : '2'}</span>
+                        </h3>
+                        <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+                            <table className="w-full text-sm text-gray-300">
+                                <thead className="bg-slate-700 text-gray-300">
+                                    <tr>
+                                        <th className="p-3 text-left">Bowler</th>
+                                        <th className="p-3 text-right">O</th>
+                                        <th className="p-3 text-right">M</th>
+                                        <th className="p-3 text-right">R</th>
+                                        <th className="p-3 text-right">W</th>
+                                        <th className="p-3 text-right">ECO</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {(currentBowling && Array.isArray(currentBowling)
+                                        ? currentBowling.filter(b => b && b.name)
+                                        : (currentBowling ? [currentBowling.bowler] : []
+                                        ).filter(Boolean)).map((bowler, idx) => (
+                                            <tr key={idx} className={idx % 2 === 0 ? "bg-slate-800" : "bg-slate-800/50"}>
+                                                <td className="p-3 font-medium text-gray-100">
+                                                    {bowler.name}
+                                                </td>
+                                                <td className="p-3 text-right">{bowler.overs || 0}</td>
+                                                <td className="p-3 text-right">0</td>
+                                                <td className="p-3 text-right">{bowler.runs || 0}</td>
+                                                <td className="p-3 text-right font-bold text-blue-400">{bowler.wickets || 0}</td>
+                                                <td className="p-3 text-right">{(bowler.overs > 0 ? (bowler.runs / bowler.overs).toFixed(1) : '0.0')}</td>
+                                            </tr>
+                                        ))}
+                                    {(!currentBowling || (Array.isArray(currentBowling) && currentBowling.length === 0)) && (
                                         <tr>
-                                            <th className="p-3 text-left">Bowler</th>
-                                            <th className="p-3 text-right">O</th>
-                                            <th className="p-3 text-right">M</th>
-                                            <th className="p-3 text-right">R</th>
-                                            <th className="p-3 text-right">W</th>
-                                            <th className="p-3 text-right">ECO</th>
+                                            <td colSpan="6" className="p-4 text-center text-gray-500 italic">No bowling data available yet.</td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-700">
-                                        <tr>
-                                            <td className="p-3 font-medium text-gray-100">
-                                                {match.bowling.bowler.name}
-                                            </td>
-                                            <td className="p-3 text-right">{match.bowling.bowler.overs}</td>
-                                            <td className="p-3 text-right">0</td>
-                                            <td className="p-3 text-right">{match.bowling.bowler.runs}</td>
-                                            <td className="p-3 text-right font-bold text-blue-400">{match.bowling.bowler.wickets}</td>
-                                            <td className="p-3 text-right">{(match.bowling.bowler.runs / match.bowling.bowler.overs).toFixed(1)}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>

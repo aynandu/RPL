@@ -9,13 +9,20 @@ export const INITIAL_MATCHES = [
             team1: { runs: 145, wickets: 4, overs: 20 },
             team2: { runs: 142, wickets: 8, overs: 20 },
         },
-        batting: {
-            striker: { name: "John Doe", runs: 45, balls: 28, fours: 4, sixes: 2 },
-            nonStriker: { name: "Jane Smith", runs: 12, balls: 10, fours: 1, sixes: 0 },
-        },
-        bowling: {
-            bowler: { name: "Mike Ross", overs: 4, runs: 28, wickets: 1 },
-        },
+        batting: [
+            { name: "John Doe", runs: 45, balls: 28, fours: 4, sixes: 2 },
+            { name: "Jane Smith", runs: 12, balls: 10, fours: 1, sixes: 0 }
+        ],
+        bowling: [
+            { name: "Mike Ross", overs: 4, runs: 28, wickets: 1 }
+        ],
+        secondInningsBatting: [
+            { name: "Harvey Specter", runs: 70, balls: 45, fours: 8, sixes: 3, dismissalType: "notOut" },
+            { name: "Louis Litt", runs: 12, balls: 15, fours: 1, sixes: 0, dismissalType: "caught", dismissalFielder: "John Doe", dismissalBowler: "Mike Ross" }
+        ],
+        secondInningsBowling: [
+            { name: "Jessica Pearson", overs: 4, runs: 30, wickets: 2 }
+        ],
         history: []
     },
     {
@@ -28,10 +35,10 @@ export const INITIAL_MATCHES = [
             team1: { runs: 120, wickets: 2, overs: 14 },
             team2: { runs: 0, wickets: 0, overs: 0 },
         },
-        batting: {
-            striker: { name: "Alice", runs: 60, balls: 40, fours: 6, sixes: 3 },
-            nonStriker: { name: "Bob", runs: 30, balls: 24, fours: 2, sixes: 1 },
-        },
+        batting: [
+            { name: "Alice", runs: 60, balls: 40, fours: 6, sixes: 3 },
+            { name: "Bob", runs: 30, balls: 24, fours: 2, sixes: 1 }
+        ],
         bowling: null,
     },
     {

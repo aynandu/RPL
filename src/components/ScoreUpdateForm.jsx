@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { X, Save } from 'lucide-react';
+import { X, Save, Trash2 } from 'lucide-react';
 
 const ScoreUpdateForm = ({ match, onClose }) => {
-    const { updateMatch } = useGame();
+    const { updateMatch, allTeams } = useGame();
     const [formData, setFormData] = useState(match);
+    const [activeTab, setActiveTab] = useState('innings1'); // 'innings1' or 'innings2'
 
     useEffect(() => {
         setFormData(match);
@@ -15,16 +16,6 @@ const ScoreUpdateForm = ({ match, onClose }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleNestedChange = (parent, field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            [parent]: {
-                ...prev[parent],
-                [field]: value
-            }
-        }));
-    };
-
     const handleScoreChange = (team, field, value) => {
         setFormData(prev => ({
             ...prev,
@@ -32,24 +23,89 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                 ...prev.score,
                 [team]: {
                     ...prev.score[team],
-                    [field]: Number(value)
+                    [field]: value === '' ? '' : Number(value)
                 }
             }
         }));
     };
 
-    // Helper to update batting/bowling deeply nested
-    const handleDeepChange = (section, subSection, field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
-                [subSection]: {
-                    ...(prev[section]?.[subSection] || {}),
-                    [field]: section === 'batting' && field !== 'name' ? Number(value) : (field === 'overs' || field === 'runs' || field === 'wickets' ? Number(value) : value)
+    // Helper to get current arrays based on tab
+    const getBattingKey = () => activeTab === 'innings1' ? 'batting' : 'secondInningsBatting';
+    const getBowlingKey = () => activeTab === 'innings1' ? 'bowling' : 'secondInningsBowling';
+
+    // Batting Array Change Handler
+    const handleBattingChange = (index, field, value) => {
+        const key = getBattingKey();
+        setFormData(prev => {
+            const newBatting = [...(prev[key] || [])];
+            if (!newBatting[index]) {
+                newBatting[index] = { name: "", runs: "", balls: "", fours: "", sixes: "", dismissalType: "notOut", dismissalBowler: "", dismissalFielder: "" };
+            }
+            newBatting[index] = {
+                ...newBatting[index],
+                [field]: (['runs', 'balls', 'fours', 'sixes'].includes(field)) ? (value === '' ? '' : Number(value)) : value
+            };
+
+            // Clear conditional fields if dismissal type changes
+            if (field === 'dismissalType') {
+                if (value === 'notOut') {
+                    newBatting[index].dismissalBowler = "";
+                    newBatting[index].dismissalFielder = "";
+                } else if (value === 'lbw' || value === 'bowled') {
+                    newBatting[index].dismissalFielder = "";
+                } else if (value === 'runOut') {
+                    newBatting[index].dismissalBowler = "";
                 }
             }
+            return { ...prev, [key]: newBatting };
+        });
+    };
+
+    const handleBowlingChange = (index, field, value) => {
+        const key = getBowlingKey();
+        setFormData(prev => {
+            const newBowling = [...(prev[key] || [])];
+            if (!newBowling[index]) {
+                newBowling[index] = { name: "", overs: "", runs: "", wickets: "" };
+            }
+            newBowling[index] = {
+                ...newBowling[index],
+                [field]: (['overs', 'runs', 'wickets'].includes(field)) ? (value === '' ? '' : Number(value)) : value
+            };
+            return { ...prev, [key]: newBowling };
+        });
+    };
+
+    const addBowler = () => {
+        const key = getBowlingKey();
+        setFormData(prev => ({
+            ...prev,
+            [key]: [...(prev[key] || []), { name: "", overs: "", runs: "", wickets: "" }]
         }));
+    };
+
+    const removeBowler = (index) => {
+        const key = getBowlingKey();
+        if (window.confirm("Are you sure you want to remove this bowler?")) {
+            setFormData(prev => ({
+                ...prev,
+                [key]: prev[key].filter((_, i) => i !== index)
+            }));
+        }
+    };
+
+    const initBatting = () => {
+        const key = getBattingKey();
+        if (!formData[key] || !Array.isArray(formData[key])) {
+            const initialBatting = Array(11).fill(null).map(() => ({
+                name: "", runs: "", balls: "", fours: "", sixes: "",
+                dismissalType: "notOut", dismissalBowler: "", dismissalFielder: ""
+            }));
+            setFormData(prev => ({
+                ...prev,
+                [key]: initialBatting
+            }));
+        }
     };
 
     const handleSubmit = (e) => {
@@ -58,28 +114,9 @@ const ScoreUpdateForm = ({ match, onClose }) => {
         onClose();
     };
 
-    const initBatting = () => {
-        if (!formData.batting) {
-            setFormData(prev => ({
-                ...prev,
-                batting: {
-                    striker: { name: "Batter 1", runs: 0, balls: 0, fours: 0, sixes: 0 },
-                    nonStriker: { name: "Batter 2", runs: 0, balls: 0, fours: 0, sixes: 0 }
-                }
-            }));
-        }
-    };
-
-    const initBowling = () => {
-        if (!formData.bowling) {
-            setFormData(prev => ({
-                ...prev,
-                bowling: {
-                    bowler: { name: "Bowler 1", overs: 0, runs: 0, wickets: 0 }
-                }
-            }));
-        }
-    };
+    // Derived state for display
+    const currentBatting = formData[getBattingKey()];
+    const currentBowling = formData[getBowlingKey()];
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex justify-center items-center z-50 p-4 animate-fade-in">
@@ -119,23 +156,31 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                         </div>
                         <div className="md:col-span-1">
                             <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Team 1</label>
-                            <input
-                                type="text"
+                            <select
                                 name="team1"
                                 value={formData.team1}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg font-bold text-blue-300"
-                            />
+                            >
+                                <option value="" className="bg-slate-900 text-gray-400">Select Team</option>
+                                {allTeams && allTeams.map((team, idx) => (
+                                    <option key={idx} value={team} className="bg-slate-900 text-white">{team}</option>
+                                ))}
+                            </select>
                         </div>
                         <div className="md:col-span-1">
                             <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Team 2</label>
-                            <input
-                                type="text"
+                            <select
                                 name="team2"
                                 value={formData.team2}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg font-bold text-purple-300"
-                            />
+                            >
+                                <option value="" className="bg-slate-900 text-gray-400">Select Team</option>
+                                {allTeams && allTeams.map((team, idx) => (
+                                    <option key={idx} value={team} className="bg-slate-900 text-white">{team}</option>
+                                ))}
+                            </select>
                         </div>
                         <div className="md:col-span-2">
                             <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Man of the Match</label>
@@ -199,47 +244,138 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                         </div>
                     </div>
 
-                    {/* Batting Details */}
+                    {/* Innings Tabs */}
+                    <div className="flex gap-4 border-b border-white/10 mb-6">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('innings1')}
+                            className={`pb-2 px-4 font-bold transition-colors border-b-2 ${activeTab === 'innings1'
+                                ? 'border-yellow-500 text-yellow-500'
+                                : 'border-transparent text-gray-400 hover:text-gray-300'
+                                }`}
+                        >
+                            1st Innings ({formData.team1})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('innings2')}
+                            className={`pb-2 px-4 font-bold transition-colors border-b-2 ${activeTab === 'innings2'
+                                ? 'border-yellow-500 text-yellow-500'
+                                : 'border-transparent text-gray-400 hover:text-gray-300'
+                                }`}
+                        >
+                            2nd Innings ({formData.team2})
+                        </button>
+                    </div>
+
+                    {/* Current Batting Details */}
                     <div className="border-b border-white/10 pb-6">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-white flex items-center gap-2">
                                 <span className="w-1.5 h-6 bg-yellow-500 rounded-full inline-block"></span>
-                                Current Batting
+                                Batting: {activeTab === 'innings1' ? formData.team1 : formData.team2}
                             </h3>
-                            <button type="button" onClick={initBatting} className="text-xs text-blue-400 hover:text-blue-300 px-3 py-1 rounded-full bg-blue-500/10 hover:bg-blue-500/20 transition-colors">Initialize</button>
+                            <button type="button" onClick={initBatting} className="text-xs text-blue-400 hover:text-blue-300 px-3 py-1 rounded-full bg-blue-500/10 hover:bg-blue-500/20 transition-colors">Initialize (11 Players)</button>
                         </div>
-                        {formData.batting && (
+                        {currentBatting && Array.isArray(currentBatting) && (
                             <div className="space-y-4">
-                                <div className="grid grid-cols-6 gap-3 items-end">
-                                    <div className="col-span-2 text-xs font-bold text-gray-400 uppercase">Striker</div>
-                                    <div className="text-xs font-bold text-gray-400 text-center">R</div>
-                                    <div className="text-xs font-bold text-gray-400 text-center">B</div>
-                                    <div className="text-xs font-bold text-gray-400 text-center">4s</div>
-                                    <div className="text-xs font-bold text-gray-400 text-center">6s</div>
-
-                                    <div className="col-span-2">
-                                        <input type="text" value={formData.batting.striker.name} onChange={(e) => handleDeepChange('batting', 'striker', 'name', e.target.value)} className="w-full glass-input p-2 rounded" />
+                                {/* Header Row */}
+                                <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-400 uppercase mb-2 text-center">
+                                    <div className="col-span-1 text-left">#</div>
+                                    <div className="col-span-3 text-left">Player Name</div>
+                                    <div className="col-span-2 text-left">Status</div>
+                                    <div className="col-span-3 text-left">Details</div>
+                                    <div className="col-span-3 grid grid-cols-4 gap-1">
+                                        <div>R</div>
+                                        <div>B</div>
+                                        <div>4s</div>
+                                        <div>6s</div>
                                     </div>
-                                    <input type="number" value={formData.batting.striker.runs} onChange={(e) => handleDeepChange('batting', 'striker', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
-                                    <input type="number" value={formData.batting.striker.balls} onChange={(e) => handleDeepChange('batting', 'striker', 'balls', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
-                                    <input type="number" value={formData.batting.striker.fours} onChange={(e) => handleDeepChange('batting', 'striker', 'fours', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
-                                    <input type="number" value={formData.batting.striker.sixes} onChange={(e) => handleDeepChange('batting', 'striker', 'sixes', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
                                 </div>
-                                <div className="grid grid-cols-6 gap-3 items-end">
-                                    <div className="col-span-2 text-xs font-bold text-gray-400 uppercase">Non-Striker</div>
-                                    <div className="text-xs font-bold text-gray-400 text-center">R</div>
-                                    <div className="text-xs font-bold text-gray-400 text-center">B</div>
-                                    <div className="text-xs font-bold text-gray-400 text-center">4s</div>
-                                    <div className="text-xs font-bold text-gray-400 text-center">6s</div>
 
-                                    <div className="col-span-2">
-                                        <input type="text" value={formData.batting.nonStriker.name} onChange={(e) => handleDeepChange('batting', 'nonStriker', 'name', e.target.value)} className="w-full glass-input p-2 rounded" />
+                                {currentBatting.map((batter, idx) => (
+                                    <div key={idx} className="bg-white/5 p-3 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                                        <div className="grid grid-cols-12 gap-2 items-start">
+                                            <div className="col-span-1 text-gray-500 font-mono text-sm pt-2">{idx + 1}</div>
+                                            <div className="col-span-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder={`Batter ${idx + 1}`}
+                                                    value={batter.name}
+                                                    onChange={(e) => handleBattingChange(idx, 'name', e.target.value)}
+                                                    className="w-full glass-input p-2 rounded text-sm mb-1"
+                                                />
+                                            </div>
+                                            <div className="col-span-2">
+                                                <select
+                                                    value={batter.dismissalType || "notOut"}
+                                                    onChange={(e) => handleBattingChange(idx, 'dismissalType', e.target.value)}
+                                                    className="w-full glass-input p-2 rounded text-xs"
+                                                >
+                                                    <option value="notOut" className="bg-slate-900">Not Out</option>
+                                                    <option value="lbw" className="bg-slate-900">LBW</option>
+                                                    <option value="caught" className="bg-slate-900">Caught</option>
+                                                    <option value="stumping" className="bg-slate-900">Stumping</option>
+                                                    <option value="runOut" className="bg-slate-900">Run Out</option>
+                                                    <option value="mankad" className="bg-slate-900">Mankad</option>
+                                                </select>
+                                            </div>
+
+                                            {/* Conditional Dismissal Inputs */}
+                                            <div className="col-span-3 space-y-2">
+                                                {['lbw', 'caught', 'stumping'].includes(batter.dismissalType) && (
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Bowler Name"
+                                                        value={batter.dismissalBowler || ""}
+                                                        onChange={(e) => handleBattingChange(idx, 'dismissalBowler', e.target.value)}
+                                                        className="w-full glass-input p-1.5 rounded text-xs border-l-2 border-red-500/50"
+                                                    />
+                                                )}
+                                                {['caught', 'stumping', 'runOut'].includes(batter.dismissalType) && (
+                                                    <input
+                                                        type="text"
+                                                        placeholder={batter.dismissalType === 'runOut' ? "Fielder Name" : (batter.dismissalType === 'stumping' ? "Wicket Keeper" : "Fielder Name")}
+                                                        value={batter.dismissalFielder || ""}
+                                                        onChange={(e) => handleBattingChange(idx, 'dismissalFielder', e.target.value)}
+                                                        className="w-full glass-input p-1.5 rounded text-xs border-l-2 border-yellow-500/50"
+                                                    />
+                                                )}
+                                            </div>
+
+                                            <div className="col-span-3 grid grid-cols-4 gap-1">
+                                                <input
+                                                    type="number"
+                                                    value={batter.runs}
+                                                    onChange={(e) => handleBattingChange(idx, 'runs', e.target.value)}
+                                                    className="w-full glass-input p-2 rounded text-center text-sm font-bold text-white"
+                                                    placeholder="0"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={batter.balls}
+                                                    onChange={(e) => handleBattingChange(idx, 'balls', e.target.value)}
+                                                    className="w-full glass-input p-2 rounded text-center text-sm"
+                                                    placeholder="0"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={batter.fours}
+                                                    onChange={(e) => handleBattingChange(idx, 'fours', e.target.value)}
+                                                    className="w-full glass-input p-2 rounded text-center text-sm text-gray-400"
+                                                    placeholder="0"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={batter.sixes}
+                                                    onChange={(e) => handleBattingChange(idx, 'sixes', e.target.value)}
+                                                    className="w-full glass-input p-2 rounded text-center text-sm text-gray-400"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <input type="number" value={formData.batting.nonStriker.runs} onChange={(e) => handleDeepChange('batting', 'nonStriker', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
-                                    <input type="number" value={formData.batting.nonStriker.balls} onChange={(e) => handleDeepChange('batting', 'nonStriker', 'balls', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
-                                    <input type="number" value={formData.batting.nonStriker.fours} onChange={(e) => handleDeepChange('batting', 'nonStriker', 'fours', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
-                                    <input type="number" value={formData.batting.nonStriker.sixes} onChange={(e) => handleDeepChange('batting', 'nonStriker', 'sixes', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
-                                </div>
+                                ))}
                             </div>
                         )}
                     </div>
@@ -249,24 +385,71 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-white flex items-center gap-2">
                                 <span className="w-1.5 h-6 bg-red-500 rounded-full inline-block"></span>
-                                Current Bowler
+                                Bowling: {activeTab === 'innings1' ? formData.team2 : formData.team1}
                             </h3>
-                            <button type="button" onClick={initBowling} className="text-xs text-blue-400 hover:text-blue-300 px-3 py-1 rounded-full bg-blue-500/10 hover:bg-blue-500/20 transition-colors">Initialize</button>
+                            <button type="button" onClick={addBowler} className="text-xs text-white bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1">
+                                + Add Bowler
+                            </button>
                         </div>
-                        {formData.bowling && (
-                            <div className="grid grid-cols-6 gap-3 items-end">
-                                <div className="col-span-2 text-xs font-bold text-gray-400 uppercase">Name</div>
-                                <div className="text-xs font-bold text-gray-400 text-center">O</div>
-                                <div className="text-xs font-bold text-gray-400 text-center">R</div>
-                                <div className="text-xs font-bold text-gray-400 text-center">W</div>
-                                <div className="col-span-1"></div>
-
-                                <div className="col-span-2">
-                                    <input type="text" value={formData.bowling.bowler.name} onChange={(e) => handleDeepChange('bowling', 'bowler', 'name', e.target.value)} className="w-full glass-input p-2 rounded" />
+                        {currentBowling && Array.isArray(currentBowling) && (
+                            <div className="space-y-2">
+                                <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-400 uppercase mb-2 text-center">
+                                    <div className="col-span-1 text-left">#</div>
+                                    <div className="col-span-4 text-left">Bowler Name</div>
+                                    <div className="col-span-2">Overs</div>
+                                    <div className="col-span-2">Runs</div>
+                                    <div className="col-span-2">Wickets</div>
+                                    <div className="col-span-1"></div>
                                 </div>
-                                <input type="number" step="0.1" value={formData.bowling.bowler.overs} onChange={(e) => handleDeepChange('bowling', 'bowler', 'overs', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
-                                <input type="number" value={formData.bowling.bowler.runs} onChange={(e) => handleDeepChange('bowling', 'bowler', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
-                                <input type="number" value={formData.bowling.bowler.wickets} onChange={(e) => handleDeepChange('bowling', 'bowler', 'wickets', e.target.value)} className="w-full glass-input p-2 rounded text-center" />
+                                {currentBowling.map((bowler, idx) => (
+                                    <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                                        <div className="col-span-1 text-gray-500 font-mono text-sm">{idx + 1}</div>
+                                        <div className="col-span-4">
+                                            <input
+                                                type="text"
+                                                placeholder={`Bowler ${idx + 1}`}
+                                                value={bowler.name}
+                                                onChange={(e) => handleBowlingChange(idx, 'name', e.target.value)}
+                                                className="w-full glass-input p-2 rounded text-sm"
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                value={bowler.overs}
+                                                onChange={(e) => handleBowlingChange(idx, 'overs', e.target.value)}
+                                                className="w-full glass-input p-2 rounded text-center text-sm"
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <input
+                                                type="number"
+                                                value={bowler.runs}
+                                                onChange={(e) => handleBowlingChange(idx, 'runs', e.target.value)}
+                                                className="w-full glass-input p-2 rounded text-center text-sm"
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <input
+                                                type="number"
+                                                value={bowler.wickets}
+                                                onChange={(e) => handleBowlingChange(idx, 'wickets', e.target.value)}
+                                                className="w-full glass-input p-2 rounded text-center text-sm font-bold text-red-400"
+                                            />
+                                        </div>
+                                        <div className="col-span-1 flex justify-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => removeBowler(idx)}
+                                                className="text-red-400 hover:text-red-300 hover:bg-red-400/10 p-1.5 rounded-lg transition-colors"
+                                                title="Remove Bowler"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
