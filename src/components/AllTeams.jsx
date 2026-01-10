@@ -19,3 +19,9 @@ const AllTeams = () => {
                         </li>
                     ))}
                 </ul>
+            </div>
+        </div>
+    );
+};
+
+export default AllTeams;

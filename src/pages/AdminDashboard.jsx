@@ -52,8 +52,8 @@ const AdminDashboard = () => {
             <h1 className="text-3xl font-bold mb-8 text-gray-800">Admin Dashboard</h1>
 
             {/* Carousel Management */}
-            <div className="bg-white p-6 rounded-lg shadow mb-8">
-                <h2 className="text-xl font-bold mb-4">Manage Carousel Images</h2>
+            <div className="bg-white p-6 rounded-lg shadow mb-8 border-2 border-cyan-500">
+                <h2 className="text-xl font-bold mb-4 text-gray-800">Manage Carousel Images</h2>
                 <div className="flex gap-4 mb-4 flex-wrap">
                     <form onSubmit={handleAddImage} className="flex gap-2 flex-1 min-w-[300px]">
                         <input
@@ -92,21 +92,21 @@ const AdminDashboard = () => {
             </div>
 
             {/* Match Management */}
-            <div className="bg-white p-6 rounded-lg shadow">
+            <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold">Matches</h2>
-                    <button onClick={handleCreateMatch} className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-white">Matches</h2>
+                    <button onClick={handleCreateMatch} className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-500 transition-colors">
                         <Plus size={16} /> Create Match
                     </button>
                 </div>
 
                 <div className="space-y-4">
                     {matches.map(match => (
-                        <div key={match.id} className="border p-4 rounded-lg flex justify-between items-center">
+                        <div key={match.id} className="border border-slate-700 bg-slate-800/50 p-4 rounded-lg flex justify-between items-center">
                             <div>
-                                <h3 className="font-bold text-lg">{match.team1} vs {match.team2}</h3>
-                                <div className="text-sm text-gray-600">
-                                    Status: <span className="font-semibold uppercase">{match.status}</span>
+                                <h3 className="font-bold text-lg text-gray-100">{match.team1} vs {match.team2}</h3>
+                                <div className="text-sm text-gray-400">
+                                    Status: <span className="font-semibold uppercase text-gray-300">{match.status}</span>
                                 </div>
                             </div>
                             <div className="flex gap-2">

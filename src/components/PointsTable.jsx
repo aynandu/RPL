@@ -33,3 +33,10 @@ const PointsTable = () => {
                             </tr>
                         ))}
                     </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+export default PointsTable;
