@@ -44,6 +44,14 @@ const MatchCard = ({ match, onClick }) => {
                     </div>
                 </div>
 
+                {/* Man of the Match */}
+                {match.status === 'completed' && match.manOfTheMatch && (
+                    <div className="mt-3 text-center text-sm border-t border-slate-800 pt-2">
+                        <span className="text-gray-400 block mb-1">Man of the Match</span>
+                        <span className="text-yellow-400 font-bold text-base">{match.manOfTheMatch}</span>
+                    </div>
+                )}
+
                 {/* Result Text */}
                 {match.status === 'completed' && (
                     <div className="mt-3 pt-2 border-t border-slate-800 text-center font-bold text-blue-400">

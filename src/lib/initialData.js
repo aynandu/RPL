@@ -56,12 +56,12 @@ export const INITIAL_IMAGES = [
 ];
 
 export const INITIAL_POINTS = [
-    { team: "Revenue Royals", played: 1, won: 1, lost: 0, points: 2, nrr: 0.15 },
-    { team: "Audit Avengers", played: 1, won: 0, lost: 1, points: 0, nrr: -0.15 },
-    { team: "Tax Titans", played: 0, won: 0, lost: 0, points: 0, nrr: 0 },
-    { team: "Finance Falcons", played: 0, won: 0, lost: 0, points: 0, nrr: 0 },
-    { team: "Ledger Legends", played: 0, won: 0, lost: 0, points: 0, nrr: 0 },
-    { team: "Balance Sheet Boys", played: 0, won: 0, lost: 0, points: 0, nrr: 0 },
+    { team: "Revenue Royals", played: 1, won: 1, lost: 0, tied: 0, points: 2, nrr: 0.15 },
+    { team: "Audit Avengers", played: 1, won: 0, lost: 1, tied: 0, points: 0, nrr: -0.15 },
+    { team: "Tax Titans", played: 0, won: 0, lost: 0, tied: 0, points: 0, nrr: 0 },
+    { team: "Finance Falcons", played: 0, won: 0, lost: 0, tied: 0, points: 0, nrr: 0 },
+    { team: "Ledger Legends", played: 0, won: 0, lost: 0, tied: 0, points: 0, nrr: 0 },
+    { team: "Balance Sheet Boys", played: 0, won: 0, lost: 0, tied: 0, points: 0, nrr: 0 },
 ];
 
 export const ALL_TEAMS = [

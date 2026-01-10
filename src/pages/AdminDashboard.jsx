@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { Plus, Trash2, Edit2, Upload } from 'lucide-react';
-import ScoreUpdateForm from '../components/ScoreUpdateForm'; // We will create this next
+import ScoreUpdateForm from '../components/ScoreUpdateForm';
+import PointsTableEditor from '../components/PointsTableEditor';
 
 const AdminDashboard = () => {
     const { matches, images, addMatch, deleteMatch, updateImages } = useGame();
@@ -43,6 +44,7 @@ const AdminDashboard = () => {
             },
             batting: null,
             bowling: null,
+            manOfTheMatch: '',
         };
         addMatch(newMatch);
     };
@@ -90,6 +92,9 @@ const AdminDashboard = () => {
                     ))}
                 </div>
             </div>
+
+            {/* Points Table Editor */}
+            <PointsTableEditor />
 
             {/* Match Management */}
             <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">

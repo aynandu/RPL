@@ -17,6 +17,7 @@ const PointsTable = () => {
                             <th className="px-2 py-2 text-center">P</th>
                             <th className="px-2 py-2 text-center">W</th>
                             <th className="px-2 py-2 text-center">L</th>
+                            <th className="px-2 py-2 text-center">T</th>
                             <th className="px-2 py-2 text-center">Pts</th>
                             <th className="px-2 py-2 text-right">NRR</th>
                         </tr>
@@ -28,6 +29,7 @@ const PointsTable = () => {
                                 <td className="px-2 py-2 text-center">{team.played}</td>
                                 <td className="px-2 py-2 text-center">{team.won}</td>
                                 <td className="px-2 py-2 text-center">{team.lost}</td>
+                                <td className="px-2 py-2 text-center">{team.tied || 0}</td>
                                 <td className="px-2 py-2 text-center font-bold text-white">{team.points}</td>
                                 <td className="px-2 py-2 text-right">{team.nrr}</td>
                             </tr>

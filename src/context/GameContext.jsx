@@ -74,6 +74,10 @@ export const GameProvider = ({ children }) => {
         setImages(newImages);
     };
 
+    const updatePointsTable = (updatedTable) => {
+        setPointsTable(updatedTable);
+    };
+
     return (
         <GameContext.Provider value={{
             matches,
@@ -86,6 +90,7 @@ export const GameProvider = ({ children }) => {
             deleteMatch,
             updateImages,
             pointsTable,
+            updatePointsTable,
             allTeams
         }}>
             {children}

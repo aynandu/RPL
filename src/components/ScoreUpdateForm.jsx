@@ -135,6 +135,17 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 className="w-full border border-slate-600 bg-slate-800 text-white p-2 rounded"
                             />
                         </div>
+                        <div className="md:col-span-4">
+                            <label className="block text-sm font-bold mb-1 text-gray-300">Man of the Match</label>
+                            <input
+                                type="text"
+                                name="manOfTheMatch"
+                                value={formData.manOfTheMatch || ''}
+                                onChange={handleChange}
+                                placeholder="Player Name"
+                                className="w-full border border-slate-600 bg-slate-800 text-white p-2 rounded"
+                            />
+                        </div>
                     </div>
 
                     {/* Team Scores */}
