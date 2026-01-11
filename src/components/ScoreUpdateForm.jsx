@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { X, Save, Trash2 } from 'lucide-react';
+import { X, Save, Trash2, UserPlus } from 'lucide-react';
+import SquadSelector from './SquadSelector';
 
 const ScoreUpdateForm = ({ match, onClose }) => {
-    const { updateMatch, allTeams } = useGame();
+    const { updateMatch, allTeams, players } = useGame(); // Get players from context
     const [formData, setFormData] = useState(match);
     const [activeTab, setActiveTab] = useState('innings1'); // 'innings1' or 'innings2'
+
+    // Squad Selector State
+    const [showSquadSelector, setShowSquadSelector] = useState(false);
+    const [selectorTeam, setSelectorTeam] = useState(null); // 'team1' or 'team2'
+
+    // Bowler Selector State
+    const [showBowlerSelector, setShowBowlerSelector] = useState(false);
+    const [bowlingTeam, setBowlingTeam] = useState(null); // The team name whose squad to show
 
     useEffect(() => {
         setFormData(match);
@@ -81,6 +90,70 @@ const ScoreUpdateForm = ({ match, onClose }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Trigger Squad Selector if status becomes 'live'
+        if (name === 'status' && value === 'live') {
+            // Check if batting info is empty to avoid overwriting existing data
+            const batting1Empty = !formData.batting || formData.batting.every(p => !p.name);
+
+            if (batting1Empty && formData.team1) {
+                // Determine order: Team 1 first, then Team 2 (we'll chain this in handleSquadSave)
+                setSelectorTeam('team1');
+                setShowSquadSelector(true);
+            }
+        }
+    };
+
+    const handleSquadSave = (selectedPlayers) => {
+        if (selectorTeam === 'team1') {
+            // Populate Innings 1 Batting
+            const newBatting = selectedPlayers.map(p => ({
+                name: p.name,
+                runs: 0,
+                balls: 0,
+                fours: 0,
+                sixes: 0,
+                dismissalType: "nextToBat",
+                dismissalBowler: "",
+                dismissalFielder: ""
+            }));
+
+            setFormData(prev => ({
+                ...prev,
+                batting: newBatting
+            }));
+
+            // Chain to Team 2
+            if (formData.team2) {
+                setSelectorTeam('team2'); // Switch to Team 2
+                // Keep selector open
+            } else {
+                setShowSquadSelector(false);
+                setSelectorTeam(null);
+            }
+
+        } else if (selectorTeam === 'team2') {
+            // Populate Innings 2 Batting
+            const newBatting = selectedPlayers.map(p => ({
+                name: p.name,
+                runs: 0,
+                balls: 0,
+                fours: 0,
+                sixes: 0,
+                dismissalType: "nextToBat",
+                dismissalBowler: "",
+                dismissalFielder: ""
+            }));
+
+            setFormData(prev => ({
+                ...prev,
+                secondInningsBatting: newBatting
+            }));
+
+            // Close selector
+            setShowSquadSelector(false);
+            setSelectorTeam(null);
+        }
     };
 
     const handleScoreChange = (team, field, value) => {
@@ -145,16 +218,33 @@ const ScoreUpdateForm = ({ match, onClose }) => {
 
     const addBowler = (e) => {
         if (e) e.preventDefault();
+
+        // Determine bowling team (Opposite of batting team)
+        const battingTeam = activeTab === 'innings1' ? formData.team1 : formData.team2;
+        const bowlingTeamName = activeTab === 'innings1' ? formData.team2 : formData.team1;
+
+        setBowlingTeam(bowlingTeamName);
+        setShowBowlerSelector(true);
+    };
+
+    const handleBowlerSelect = (selectedPlayers) => {
+        if (selectedPlayers.length === 0) return;
+
+        const player = selectedPlayers[0];
         const key = getBowlingKey();
+
         setFormData(prev => {
             const currentList = prev[key];
-            // Ensure we're working with an array, initializing if null/undefined
             const listArray = Array.isArray(currentList) ? currentList : [];
+            // Add new bowler
             return {
                 ...prev,
-                [key]: [...listArray, { name: "", overs: "", runs: "", wickets: "" }]
+                [key]: [...listArray, { name: player.name, overs: "", runs: "", wickets: "", extras: "" }]
             };
         });
+
+        setShowBowlerSelector(false);
+        setBowlingTeam(null);
     };
 
     const removeBowler = (index) => {
@@ -676,8 +766,32 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                         <Save size={20} /> Save Updates
                     </button>
                 </div>
-            </div >
-        </div >
+            </div>
+
+            {/* Squad Selector Modal for Batting XI */}
+            {showSquadSelector && (
+                <SquadSelector
+                    key={selectorTeam === 'team1' ? formData.team1 : formData.team2}
+                    teamName={selectorTeam === 'team1' ? formData.team1 : formData.team2}
+                    availablePlayers={players || []}
+                    onSave={handleSquadSave}
+                    onCancel={() => { setShowSquadSelector(false); setSelectorTeam(null); }}
+                />
+            )}
+
+            {/* Squad Selector Modal for Adding Bowler */}
+            {showBowlerSelector && (
+                <SquadSelector
+                    key={'bowler-' + bowlingTeam}
+                    teamName={bowlingTeam}
+                    availablePlayers={players || []}
+                    onSave={handleBowlerSelect}
+                    onCancel={() => { setShowBowlerSelector(false); setBowlingTeam(null); }}
+                    maxSelection={1}
+                    title="Select New Bowler"
+                />
+            )}
+        </div>
     );
 };
 
