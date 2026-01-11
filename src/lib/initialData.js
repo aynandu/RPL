@@ -5,6 +5,7 @@ export const INITIAL_MATCHES = [
         team2: "Audit Avengers",
         status: "completed",
         date: "2024-03-10T14:30:00",
+        oversChoosen: "20 Over",
         score: {
             team1: { runs: 145, wickets: 4, overs: 20 },
             team2: { runs: 142, wickets: 8, overs: 20 },
@@ -33,6 +34,7 @@ export const INITIAL_MATCHES = [
         team2: "Finance Falcons",
         status: "live",
         date: "2024-03-11T10:00:00",
+        oversChoosen: "20 Over",
         score: {
             team1: { runs: 120, wickets: 2, overs: 14 },
             team2: { runs: 0, wickets: 0, overs: 0 },

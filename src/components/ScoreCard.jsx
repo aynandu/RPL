@@ -65,9 +65,51 @@ const ScoreCard = ({ match, onClose }) => {
                             </p>
                             <p className="text-gray-400">{match.score.team1.overs} Overs</p>
                         </div>
-                        <div className="flex items-center justify-center">
+                        <div className="flex items-center justify-center relative">
                             <div className="w-px h-full bg-slate-700 hidden md:block"></div>
                             <div className="h-px w-full bg-slate-700 md:hidden"></div>
+
+                            {(() => {
+                                // Check if 1st Innings is complete
+                                const isFirstInningsDone = match.innings1Overs &&
+                                    match.innings1Overs.length > 0 &&
+                                    match.innings1Overs.every(o => o.savedStats);
+
+                                if (isFirstInningsDone && match.status !== 'completed') {
+                                    return (
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 px-4 py-2 rounded-xl border border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.2)] flex flex-col items-center gap-1">
+                                            <div className="flex flex-col items-center">
+                                                <p className="text-yellow-500 text-[10px] font-bold uppercase tracking-widest leading-none mb-1">Target</p>
+                                                <p className="text-xl font-mono font-black text-white leading-none">{(match.score.team1.runs || 0) + 1}</p>
+                                            </div>
+                                            {(() => {
+                                                // Calculate match equation for 2nd innings
+                                                const t2Stats = match.score.team2;
+                                                const isSecondInningsStarted = t2Stats.overs > 0 || (match.batting && match.batting.length > 0 && match.status === 'live');
+
+                                                if (match.status === 'live' && isSecondInningsStarted) {
+                                                    const target = (match.score.team1.runs || 0) + 1;
+                                                    const runsNeeded = target - (t2Stats.runs || 0);
+
+                                                    // Balls Left Calculation (Assuming 20 overs match)
+                                                    const totalBalls = 120; // 20 overs * 6
+                                                    const currentOvers = Number(t2Stats.overs || 0);
+                                                    const completedOvers = Math.floor(currentOvers);
+                                                    const ballsInCurrentOver = Math.round((currentOvers - completedOvers) * 10);
+                                                    const ballsBowled = (completedOvers * 6) + ballsInCurrentOver;
+                                                    const ballsLeft = totalBalls - ballsBowled;
+
+                                                    if (runsNeeded > 0 && ballsLeft >= 0) {
+                                                        return null;
+                                                    }
+                                                }
+                                                return null;
+                                            })()}
+                                        </div>
+                                    )
+                                }
+                                return null;
+                            })()}
                         </div>
                         <div>
                             <h3 className="text-2xl font-bold text-gray-100">{match.team2}</h3>
@@ -77,6 +119,37 @@ const ScoreCard = ({ match, onClose }) => {
                             <p className="text-gray-400">{match.score.team2.overs} Overs</p>
                         </div>
                     </div>
+
+                    {/* Match Equation Banner (Outside Target Table) */}
+                    {(() => {
+                        const t2Stats = match.score.team2;
+                        const isSecondInningsStarted = t2Stats.overs > 0 || (match.batting && match.batting.length > 0 && match.status === 'live');
+
+                        if (match.status === 'live' && isSecondInningsStarted) {
+                            const target = (match.score.team1.runs || 0) + 1;
+                            const runsNeeded = target - (t2Stats.runs || 0);
+
+                            // Balls Left Calculation
+                            const totalOversMatch = parseInt(match.oversChoosen) || 20;
+                            const totalBalls = totalOversMatch * 6;
+                            const currentOvers = Number(t2Stats.overs || 0);
+                            const completedOvers = Math.floor(currentOvers);
+                            const ballsInCurrentOver = Math.round((currentOvers - completedOvers) * 10);
+                            const ballsBowled = (completedOvers * 6) + ballsInCurrentOver;
+                            const ballsLeft = totalBalls - ballsBowled;
+
+                            if (runsNeeded > 0 && ballsLeft >= 0) {
+                                return (
+                                    <div className="bg-gradient-to-r from-red-900/40 via-red-900/20 to-red-900/40 border-y border-red-500/20 py-3 text-center -mt-4 mb-6 relative z-0">
+                                        <p className="text-lg md:text-xl font-black text-red-300 tracking-wider uppercase animate-pulse">
+                                            Need <span className="text-white">{runsNeeded}</span> runs in <span className="text-white">{ballsLeft}</span> balls
+                                        </p>
+                                    </div>
+                                );
+                            }
+                        }
+                        return null;
+                    })()}
 
                     {/* Toss Result */}
                     {(match.status === 'live' || match.status === 'completed') && match.tossResult && (
@@ -138,6 +211,7 @@ const ScoreCard = ({ match, onClose }) => {
                                                         {batter.dismissalType === 'lbw' && `lbw b ${batter.dismissalBowler}`}
                                                         {batter.dismissalType === 'caught' && `c ${batter.dismissalFielder} b ${batter.dismissalBowler}`}
                                                         {batter.dismissalType === 'stumping' && `st ${batter.dismissalFielder} b ${batter.dismissalBowler}`}
+                                                        {batter.dismissalType === 'bowled' && `b ${batter.dismissalBowler}`}
                                                         {batter.dismissalType === 'runOut' && `run out (${batter.dismissalFielder})`}
                                                         {batter.dismissalType === 'nextToBat' && <span className="text-yellow-400 font-bold">Next-to-bat</span>}
                                                     </div>

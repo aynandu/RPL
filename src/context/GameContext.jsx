@@ -52,6 +52,26 @@ export const GameProvider = ({ children }) => {
         localStorage.setItem('rpl_is_admin', isAdmin);
     }, [isAdmin]);
 
+    // Cross-tab Synchronization
+    useEffect(() => {
+        const handleStorageChange = (e) => {
+            if (e.key === 'rpl_matches') {
+                setMatches(JSON.parse(e.newValue || '[]'));
+            } else if (e.key === 'rpl_images') {
+                setImages(JSON.parse(e.newValue || '[]'));
+            } else if (e.key === 'rpl_points') {
+                setPointsTable(JSON.parse(e.newValue || '[]'));
+            } else if (e.key === 'rpl_players') {
+                setPlayers(JSON.parse(e.newValue || '[]'));
+            } else if (e.key === 'rpl_is_admin') {
+                setIsAdmin(e.newValue === 'true');
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
+
     // Derived state
     const allTeams = pointsTable.map(team => team.team);
 

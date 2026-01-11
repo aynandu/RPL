@@ -57,7 +57,59 @@ const MatchCard = ({ match, onClick }) => {
                         <span className="text-xs text-blue-400/70 font-bold">({match.score.team1.overs} ov)</span>
                     </div>
 
-                    <div className="text-gray-600 font-black text-2xl px-4 opacity-30 italic">VS</div>
+                    <div className="text-gray-600 font-black text-2xl px-4 opacity-30 italic flex flex-col items-center">
+                        <span>VS</span>
+                        {(() => {
+                            // Check if 1st Innings is complete: All configured overs have savedStats
+                            // We assume match.innings1Overs matches the configured total overs.
+                            // Better check: If 2nd innings has started (overs > 0) OR if all 1st innings overs are saved.
+                            // User specific request: "when 1st inning completed as per no more over card left"
+                            // This implies we rely on innings1Overs.every(o => o.savedStats).
+
+                            const isFirstInningsDone = match.innings1Overs &&
+                                match.innings1Overs.length > 0 &&
+                                match.innings1Overs.every(o => o.savedStats);
+
+                            if (isFirstInningsDone && match.status !== 'completed') {
+                                const target = (match.score.team1.runs || 0) + 1;
+                                return (
+                                    <span className="text-[10px] text-yellow-500 font-bold mt-1 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20 whitespace-nowrap">
+                                        Target: {target}
+                                    </span>
+                                );
+                            }
+                            return null;
+                        })()}
+                        {(() => {
+                            // Show equation: "Need X runs in Y balls"
+                            // Condition: Live match, 1st innings done (target exists)
+                            const isFirstInningsDone = match.innings1Overs && match.innings1Overs.length > 0 && match.innings1Overs.every(o => o.savedStats);
+                            const t2Stats = match.score.team2;
+
+                            if (match.status === 'live' && isFirstInningsDone && t2Stats.overs > 0) {
+                                const target = (match.score.team1.runs || 0) + 1;
+                                const runsNeeded = target - (t2Stats.runs || 0);
+
+                                // Balls Left Calculation
+                                const totalOversMatch = parseInt(match.oversChoosen) || 20;
+                                const totalBalls = totalOversMatch * 6;
+                                const currentOvers = Number(t2Stats.overs || 0);
+                                const completedOvers = Math.floor(currentOvers);
+                                const ballsInCurrentOver = Math.round((currentOvers - completedOvers) * 10);
+                                const ballsBowled = (completedOvers * 6) + ballsInCurrentOver;
+                                const ballsLeft = totalBalls - ballsBowled;
+
+                                if (runsNeeded > 0 && ballsLeft >= 0) {
+                                    return (
+                                        <span className="text-[10px] text-red-400 font-bold mt-1 bg-red-900/30 px-2 py-0.5 rounded border border-red-500/20 whitespace-nowrap animate-pulse">
+                                            Need {runsNeeded} runs in {ballsLeft} balls
+                                        </span>
+                                    );
+                                }
+                            }
+                            return null;
+                        })()}
+                    </div>
 
                     <div className="flex flex-col items-center md:items-end gap-1 w-1/3 text-right">
                         <div className="font-black text-lg md:text-xl text-white tracking-tight">{match.team2}</div>
@@ -98,7 +150,19 @@ const MatchCard = ({ match, onClick }) => {
                     <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-center text-sm text-gray-300 font-medium">
                         <span className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                            {match.batting && Array.isArray(match.batting) && match.batting[0] ? `${match.batting[0].name} *` : (match.batting && match.batting.striker ? `${match.batting.striker.name} *` : 'Match in Progress')}
+                            {(() => {
+                                // Determine active innings data (could be batting or secondInningsBatting)
+                                // Since match object structure might vary, we check the standard array
+                                const currentBatting = match.batting && Array.isArray(match.batting) ? match.batting : [];
+
+                                // Filter for Not Out / Next to Bat (but usually we show Not Out i.e. on crease)
+                                const activeBatters = currentBatting.filter(p => !p.dismissalType || p.dismissalType === 'notOut').slice(0, 2); // Show max 2
+
+                                if (activeBatters.length > 0) {
+                                    return activeBatters.map(p => `${p.name} ${p.runs || 0}(${p.balls || 0}) *`).join('  |  ');
+                                }
+                                return 'Match in Progress';
+                            })()}
                         </span>
                         <ChevronRight className="w-4 h-4 text-blue-400 group-hover:translate-x-1 transition-transform" />
                     </div>

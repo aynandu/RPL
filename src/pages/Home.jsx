@@ -5,9 +5,14 @@ import MatchList from '../components/MatchList';
 import ScoreCard from '../components/ScoreCard';
 import PointsTable from '../components/PointsTable';
 import AllTeams from '../components/AllTeams';
+import { useGame } from '../context/GameContext';
 
 const Home = () => {
-    const [selectedMatch, setSelectedMatch] = useState(null);
+    const { matches } = useGame();
+    const [selectedMatchId, setSelectedMatchId] = useState(null);
+
+    // Derived state: Always get the latest match data from context
+    const selectedMatch = selectedMatchId ? matches.find(m => m.id === selectedMatchId) : null;
 
     return (
         <div className="min-h-screen pb-10">
@@ -19,7 +24,7 @@ const Home = () => {
                     {/* Left Column: Matches (65%) */}
                     <div className="w-full md:w-[65%]">
                         <div className="mb-6">
-                            <MatchList onSelectMatch={setSelectedMatch} />
+                            <MatchList onSelectMatch={(m) => setSelectedMatchId(m.id)} />
                         </div>
                     </div>
 
@@ -35,7 +40,7 @@ const Home = () => {
             {selectedMatch && (
                 <ScoreCard
                     match={selectedMatch}
-                    onClose={() => setSelectedMatch(null)}
+                    onClose={() => setSelectedMatchId(null)}
                 />
             )}
         </div>

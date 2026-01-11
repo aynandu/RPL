@@ -5,7 +5,7 @@ import SquadSelector from './SquadSelector';
 
 const ScoreUpdateForm = ({ match, onClose }) => {
     const { updateMatch, allTeams, players } = useGame(); // Get players from context
-    const [formData, setFormData] = useState(match);
+    const [formData, setFormData] = useState({ ...match, oversChoosen: match.oversChoosen || '6 Over' });
     const [activeTab, setActiveTab] = useState('innings1'); // 'innings1' or 'innings2'
 
     // Squad Selector State
@@ -21,7 +21,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
     const [activeOverIndex, setActiveOverIndex] = useState(null);
 
     useEffect(() => {
-        setFormData(match);
+        setFormData({ ...match, oversChoosen: match.oversChoosen || '6 Over' });
     }, [match]);
 
     // Initialize overs arrays based on selection
@@ -53,39 +53,44 @@ const ScoreUpdateForm = ({ match, onClose }) => {
     }, [formData.oversChoosen]);
 
     // Auto-calculate scores based on Over-by-Over data
+    // Auto-calculate Team Runs and Innings Extras from Over Cards
     useEffect(() => {
-        const calculateStats = (oversData) => {
-            if (!oversData) return { runsFromBalls: 0, totalExtras: 0 };
-            return oversData.reduce((acc, over) => {
-                const ballsSum = over.balls.reduce((sum, ball) => sum + (Number(ball) || 0), 0);
-                const extras = Number(over.extras) || 0;
-                return {
-                    runsFromBalls: acc.runsFromBalls + ballsSum,
-                    totalExtras: acc.totalExtras + extras
-                };
-            }, { runsFromBalls: 0, totalExtras: 0 });
+        const calculateInningsStats = (oversList) => {
+            if (!oversList || !Array.isArray(oversList)) return { totalRuns: 0, totalExtras: 0 };
+
+            let runs = 0;
+            let extras = 0;
+
+            oversList.forEach(over => {
+                const overExtras = Number(over.extras) || 0;
+                const ballRuns = over.balls.reduce((acc, ball) => acc + (Number(ball) || 0), 0);
+
+                runs += ballRuns + overExtras;
+                extras += overExtras;
+            });
+
+            return { totalRuns: runs, totalExtras: extras };
         };
 
-        const stats1 = calculateStats(formData.innings1Overs);
-        const stats2 = calculateStats(formData.innings2Overs);
+        const stats1 = calculateInningsStats(formData.innings1Overs);
+        const stats2 = calculateInningsStats(formData.innings2Overs);
 
-        const totalRuns1 = stats1.runsFromBalls + stats1.totalExtras;
-        const totalRuns2 = stats2.runsFromBalls + stats2.totalExtras;
-
+        // Only update if changed to prevent loops
         setFormData(prev => {
-            // Only update if values are different
-            if (prev.score.team1.runs === totalRuns1 &&
-                prev.score.team2.runs === totalRuns2 &&
+            // Check if current matches calculated to avoid unnecessary re-renders
+            if (prev.score.team1.runs === stats1.totalRuns &&
                 prev.score.team1.extras === stats1.totalExtras &&
+                prev.score.team2.runs === stats2.totalRuns &&
                 prev.score.team2.extras === stats2.totalExtras) {
                 return prev;
             }
+
             return {
                 ...prev,
                 score: {
                     ...prev.score,
-                    team1: { ...prev.score.team1, runs: totalRuns1, extras: stats1.totalExtras },
-                    team2: { ...prev.score.team2, runs: totalRuns2, extras: stats2.totalExtras }
+                    team1: { ...prev.score.team1, runs: stats1.totalRuns, extras: stats1.totalExtras },
+                    team2: { ...prev.score.team2, runs: stats2.totalRuns, extras: stats2.totalExtras }
                 }
             };
         });
@@ -107,21 +112,33 @@ const ScoreUpdateForm = ({ match, onClose }) => {
             return Number(`${finalOvers}.${finalBalls}`);
         };
 
+        const countWickets = (battingList) => {
+            if (!battingList || !Array.isArray(battingList)) return 0;
+            return battingList.filter(p => p.dismissalType && p.dismissalType !== 'notOut' && p.dismissalType !== 'nextToBat').length;
+        };
+
         const overs1 = sumOvers(formData.bowling); // Team 2 bowling against Team 1
         const overs2 = sumOvers(formData.secondInningsBowling); // Team 1 bowling against Team 2
 
+        const wickets1 = countWickets(formData.batting);
+        const wickets2 = countWickets(formData.secondInningsBatting);
+
         setFormData(prev => {
-            if (prev.score.team1.overs === overs1 && prev.score.team2.overs === overs2) return prev;
+            if (prev.score.team1.overs === overs1 &&
+                prev.score.team2.overs === overs2 &&
+                prev.score.team1.wickets === wickets1 &&
+                prev.score.team2.wickets === wickets2) return prev;
+
             return {
                 ...prev,
                 score: {
                     ...prev.score,
-                    team1: { ...prev.score.team1, overs: overs1 },
-                    team2: { ...prev.score.team2, overs: overs2 }
+                    team1: { ...prev.score.team1, overs: overs1, wickets: wickets1 },
+                    team2: { ...prev.score.team2, overs: overs2, wickets: wickets2 }
                 }
             };
         });
-    }, [formData.bowling, formData.secondInningsBowling]);
+    }, [formData.bowling, formData.secondInningsBowling, formData.batting, formData.secondInningsBatting]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -422,7 +439,8 @@ const ScoreUpdateForm = ({ match, onClose }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         updateMatch(match.id, formData);
-        onClose();
+        alert('Match updates saved successfully!');
+        // onClose(); // Keep window open as per user request
     };
 
     // Derived state for display
@@ -463,7 +481,10 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                     bowler: "",
                     extras: "",
                     wickets: "",
-                    savedStats: null // Reset saved status
+                    extras: "",
+                    wickets: "",
+                    savedStats: null, // Reset saved status
+                    ballAssignments: {} // Reset assignments
                 };
                 return { ...prev, [key]: newOvers, [bowlingKey]: currentBowling };
             });
@@ -473,6 +494,98 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                 setShowOverSelector(false);
             }
         }
+    };
+
+    // State for Ball-by-Ball Batter Assignment
+    const [showBallBatterSelector, setShowBallBatterSelector] = useState(false);
+    const [pendingBallUpdate, setPendingBallUpdate] = useState(null);
+
+    const handleBallInputChange = (overIdx, ballIdx, value) => {
+        // 1. Update the visual state immediately
+        const key = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
+        setFormData(prev => {
+            const newOvers = [...(prev[key] || [])];
+            const newBalls = [...newOvers[overIdx].balls];
+            newBalls[ballIdx] = value;
+            newOvers[overIdx] = { ...newOvers[overIdx], balls: newBalls };
+            return { ...prev, [key]: newOvers };
+        });
+
+        // 2. If it's a numeric run value (0, 1, 2, 3, 4, 6), trigger batter selector
+        const numericValue = Number(value);
+        if (!isNaN(numericValue) && value.trim() !== "") {
+            setPendingBallUpdate({ overIdx, ballIdx, value: numericValue });
+            setShowBallBatterSelector(true);
+        }
+    };
+
+    const handleBallBatterSelect = (batterName) => {
+        if (!pendingBallUpdate) return;
+        const { value, overIdx, ballIdx } = pendingBallUpdate;
+        const battingKey = activeTab === 'innings1' ? 'batting' : 'secondInningsBatting';
+        const oversKey = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
+
+        setFormData(prev => {
+            let currentBatting = [...(prev[battingKey] || [])];
+            const newOvers = [...(prev[oversKey] || [])];
+
+            // Initialize assignments object if missing
+            if (!newOvers[overIdx].ballAssignments) {
+                newOvers[overIdx] = { ...newOvers[overIdx], ballAssignments: {} };
+            }
+
+            const assignments = { ...newOvers[overIdx].ballAssignments };
+            const previousAssignment = assignments[ballIdx];
+
+            // 1. REVERT previous assignment if exists
+            if (previousAssignment) {
+                const prevBatterIndex = currentBatting.findIndex(b => b.name === previousAssignment.batter);
+                if (prevBatterIndex !== -1) {
+                    const prevBatter = currentBatting[prevBatterIndex];
+                    currentBatting[prevBatterIndex] = {
+                        ...prevBatter,
+                        runs: Math.max(0, (Number(prevBatter.runs) || 0) - previousAssignment.value),
+                        balls: Math.max(0, (Number(prevBatter.balls) || 0) - 1),
+                        fours: Math.max(0, (Number(prevBatter.fours) || 0) - (previousAssignment.value === 4 ? 1 : 0)),
+                        sixes: Math.max(0, (Number(prevBatter.sixes) || 0) - (previousAssignment.value === 6 ? 1 : 0))
+                    };
+                }
+            }
+
+            // 2. APPLY new assignment
+            const batterIndex = currentBatting.findIndex(b => b.name === batterName);
+            if (batterIndex !== -1) {
+                const batter = currentBatting[batterIndex];
+                currentBatting[batterIndex] = {
+                    ...batter,
+                    runs: (Number(batter.runs) || 0) + value,
+                    balls: (Number(batter.balls) || 0) + 1,
+                    fours: (Number(batter.fours) || 0) + (value === 4 ? 1 : 0),
+                    sixes: (Number(batter.sixes) || 0) + (value === 6 ? 1 : 0)
+                };
+            }
+
+            // 3. Update Assignment Record
+            assignments[ballIdx] = { batter: batterName, value: value };
+            newOvers[overIdx] = { ...newOvers[overIdx], ballAssignments: assignments };
+
+            return { ...prev, [battingKey]: currentBatting, [oversKey]: newOvers };
+        });
+
+        setShowBallBatterSelector(false);
+        setPendingBallUpdate(null);
+    };
+
+    // State for Opposition Player Selector (Dismissals)
+    const [showOppositionSelector, setShowOppositionSelector] = useState(false);
+    const [pendingOppositionUpdate, setPendingOppositionUpdate] = useState(null);
+
+    const handleOppositionPlayerSelect = (playerName) => {
+        if (!pendingOppositionUpdate) return;
+        const { batterIndex, field } = pendingOppositionUpdate;
+        handleBattingChange(batterIndex, field, playerName);
+        setShowOppositionSelector(false);
+        setPendingOppositionUpdate(null);
     };
 
     return (
@@ -541,14 +654,32 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                         </div>
                         <div className="md:col-span-2">
                             <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Man of the Match</label>
-                            <input
-                                type="text"
+                            <select
                                 name="manOfTheMatch"
                                 value={formData.manOfTheMatch || ''}
                                 onChange={handleChange}
-                                placeholder="Player Name"
-                                className="w-full glass-input p-2 rounded-lg"
-                            />
+                                className="w-full glass-input p-2 rounded-lg text-white"
+                            >
+                                <option value="" className="bg-slate-900 text-gray-400">Select Player</option>
+                                {formData.team1 && (
+                                    <optgroup label={formData.team1} className="bg-slate-900 text-blue-300">
+                                        {players && players
+                                            .filter(p => p.team === formData.team1)
+                                            .map((p, idx) => (
+                                                <option key={`t1-${idx}`} value={p.name} className="text-white">{p.name}</option>
+                                            ))}
+                                    </optgroup>
+                                )}
+                                {formData.team2 && (
+                                    <optgroup label={formData.team2} className="bg-slate-900 text-purple-300">
+                                        {players && players
+                                            .filter(p => p.team === formData.team2)
+                                            .map((p, idx) => (
+                                                <option key={`t2-${idx}`} value={p.name} className="text-white">{p.name}</option>
+                                            ))}
+                                    </optgroup>
+                                )}
+                            </select>
                         </div>
                         <div className="md:col-span-2">
                             <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Stadium</label>
@@ -595,9 +726,9 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 <span className="text-xs font-normal text-blue-400 opacity-70">Runs / Wkts / Overs</span>
                             </h3>
                             <div className="grid grid-cols-3 gap-2">
-                                <input type="number" placeholder="Runs" value={formData.score.team1.runs} onChange={(e) => handleScoreChange('team1', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" disabled title="Auto-calculated" />
+                                <input type="number" placeholder="Runs" value={formData.score.team1.runs} onChange={(e) => handleScoreChange('team1', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
                                 <input type="number" placeholder="Wkts" value={formData.score.team1.wickets} onChange={(e) => handleScoreChange('team1', 'wickets', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
-                                <input type="number" placeholder="Overs" value={formData.score.team1.overs} className="w-full glass-input p-2 rounded text-center font-mono text-lg" disabled title="Auto-calculated from bowlers" />
+                                <input type="number" placeholder="Overs" value={formData.score.team1.overs} onChange={(e) => handleScoreChange('team1', 'overs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" step="0.1" />
                             </div>
                         </div>
                         <div className="bg-purple-500/10 p-4 rounded-xl border border-purple-500/20">
@@ -606,9 +737,9 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 <span className="text-xs font-normal text-purple-400 opacity-70">Runs / Wkts / Overs</span>
                             </h3>
                             <div className="grid grid-cols-3 gap-2">
-                                <input type="number" placeholder="Runs" value={formData.score.team2.runs} onChange={(e) => handleScoreChange('team2', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" disabled title="Auto-calculated" />
+                                <input type="number" placeholder="Runs" value={formData.score.team2.runs} onChange={(e) => handleScoreChange('team2', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
                                 <input type="number" placeholder="Wkts" value={formData.score.team2.wickets} onChange={(e) => handleScoreChange('team2', 'wickets', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
-                                <input type="number" placeholder="Overs" value={formData.score.team2.overs} className="w-full glass-input p-2 rounded text-center font-mono text-lg" disabled title="Auto-calculated from bowlers" />
+                                <input type="number" placeholder="Overs" value={formData.score.team2.overs} onChange={(e) => handleScoreChange('team2', 'overs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" step="0.1" />
                             </div>
                         </div>
                     </div>
@@ -682,6 +813,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                     className="w-full glass-input p-2 rounded text-xs"
                                                 >
                                                     <option value="notOut" className="bg-slate-900">Not Out</option>
+                                                    <option value="bowled" className="bg-slate-900">Bowled</option>
                                                     <option value="lbw" className="bg-slate-900">LBW</option>
                                                     <option value="caught" className="bg-slate-900">Caught</option>
                                                     <option value="stumping" className="bg-slate-900">Stumping</option>
@@ -692,22 +824,30 @@ const ScoreUpdateForm = ({ match, onClose }) => {
 
                                             {/* Conditional Dismissal Inputs */}
                                             <div className="col-span-3 space-y-2">
-                                                {['lbw', 'caught', 'stumping'].includes(batter.dismissalType) && (
+                                                {['lbw', 'caught', 'stumping', 'bowled'].includes(batter.dismissalType) && (
                                                     <input
                                                         type="text"
-                                                        placeholder="Bowler Name"
+                                                        placeholder="Select Bowler"
                                                         value={batter.dismissalBowler || ""}
-                                                        onChange={(e) => handleBattingChange(idx, 'dismissalBowler', e.target.value)}
-                                                        className="w-full glass-input p-1.5 rounded text-xs border-l-2 border-red-500/50"
+                                                        onClick={() => {
+                                                            setPendingOppositionUpdate({ batterIndex: idx, field: 'dismissalBowler' });
+                                                            setShowOppositionSelector(true);
+                                                        }}
+                                                        readOnly
+                                                        className="w-full glass-input p-1.5 rounded text-xs border-l-2 border-red-500/50 cursor-pointer hover:bg-white/10"
                                                     />
                                                 )}
                                                 {['caught', 'stumping', 'runOut'].includes(batter.dismissalType) && (
                                                     <input
                                                         type="text"
-                                                        placeholder={batter.dismissalType === 'runOut' ? "Fielder Name" : (batter.dismissalType === 'stumping' ? "Wicket Keeper" : "Fielder Name")}
+                                                        placeholder={batter.dismissalType === 'runOut' ? "Select Fielder" : (batter.dismissalType === 'stumping' ? "Select Keeper" : "Select Fielder")}
                                                         value={batter.dismissalFielder || ""}
-                                                        onChange={(e) => handleBattingChange(idx, 'dismissalFielder', e.target.value)}
-                                                        className="w-full glass-input p-1.5 rounded text-xs border-l-2 border-yellow-500/50"
+                                                        onClick={() => {
+                                                            setPendingOppositionUpdate({ batterIndex: idx, field: 'dismissalFielder' });
+                                                            setShowOppositionSelector(true);
+                                                        }}
+                                                        readOnly
+                                                        className="w-full glass-input p-1.5 rounded text-xs border-l-2 border-yellow-500/50 cursor-pointer hover:bg-white/10"
                                                     />
                                                 )}
                                             </div>
@@ -753,10 +893,9 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 <input
                                     type="number"
                                     value={activeTab === 'innings1' ? (formData.score.team1.extras || 0) : (formData.score.team2.extras || 0)}
-                                    readOnly
-                                    className="glass-input p-2 rounded text-center w-24 font-bold text-yellow-400 bg-black/20 cursor-not-allowed"
+                                    onChange={(e) => handleScoreChange(activeTab === 'innings1' ? 'team1' : 'team2', 'extras', e.target.value)}
+                                    className="glass-input p-2 rounded text-center w-24 font-bold text-yellow-400"
                                     placeholder="0"
-                                    title="Calculated from Over-by-Over Extras"
                                 />
                             </div>
                         )}
@@ -900,16 +1039,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                 key={ballIdx}
                                                 type="text"
                                                 value={ball}
-                                                onChange={(e) => {
-                                                    const key = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
-                                                    setFormData(prev => {
-                                                        const newOvers = [...(prev[key] || [])];
-                                                        const newBalls = [...newOvers[overIdx].balls];
-                                                        newBalls[ballIdx] = e.target.value;
-                                                        newOvers[overIdx] = { ...newOvers[overIdx], balls: newBalls };
-                                                        return { ...prev, [key]: newOvers };
-                                                    });
-                                                }}
+                                                onChange={(e) => handleBallInputChange(overIdx, ballIdx, e.target.value)}
                                                 className="w-full glass-input p-1.5 rounded text-center text-xs font-bold"
                                                 placeholder="0"
                                             />
@@ -995,10 +1125,13 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                     {/* Save Button for Over */}
                                     <button
                                         type="button"
+                                        disabled={!overData.bowler || overData.balls.some(b => b === "")}
                                         onClick={() => handleSaveOver(overIdx)}
-                                        className={`w-full mt-2 py-1.5 text-xs rounded transition-colors font-bold uppercase tracking-wider ${overData.savedStats
-                                            ? 'bg-green-600/20 hover:bg-green-600/30 text-green-300'
-                                            : 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300'
+                                        className={`w-full mt-2 py-1.5 text-xs rounded transition-colors font-bold uppercase tracking-wider ${(!overData.bowler || overData.balls.some(b => b === ""))
+                                            ? 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-50'
+                                            : overData.savedStats
+                                                ? 'bg-green-600/20 hover:bg-green-600/30 text-green-300'
+                                                : 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300'
                                             }`}
                                     >
                                         {overData.savedStats ? 'Update Over' : 'Save Over'}
@@ -1015,6 +1148,88 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                     </button>
                 </div>
             </div>
+
+            {/* Modal for Selecting Batter for Ball Assignment */}
+            {showBallBatterSelector && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-fade-in">
+                    <div className="bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl relative border border-slate-700 p-6">
+                        <h3 className="text-xl font-bold text-center mb-6 text-white">Who scored {pendingBallUpdate?.value} runs?</h3>
+                        <div className="grid grid-cols-1 gap-3">
+                            {/* Show Not Out Batters */}
+                            {(() => {
+                                const battingKey = activeTab === 'innings1' ? 'batting' : 'secondInningsBatting';
+                                const activeBatters = (formData[battingKey] || []).filter(p => !p.dismissalType || p.dismissalType === 'notOut');
+
+                                if (activeBatters.length === 0) return <div className="text-gray-500 text-center italic">No active batters found.</div>;
+
+                                return activeBatters.map((batter, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => handleBallBatterSelect(batter.name)}
+                                        className="bg-slate-800 hover:bg-slate-700 text-white p-4 rounded-xl font-bold text-lg transition-transform hover:scale-105 border border-slate-700 flex justify-between items-center group"
+                                    >
+                                        <span>{batter.name}</span>
+                                        <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded group-hover:bg-blue-500/30">Select</span>
+                                    </button>
+                                ));
+                            })()}
+                        </div>
+                        <button
+                            onClick={() => { setShowBallBatterSelector(false); setPendingBallUpdate(null); }}
+                            className="w-full mt-6 py-3 text-sm text-gray-400 hover:text-white transition-colors"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal for Selecting Opposition Player (Dismissals) */}
+            {showOppositionSelector && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-fade-in">
+                    <div className="bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl relative border border-slate-700 p-6 max-h-[80vh] flex flex-col">
+                        <h3 className="text-xl font-bold text-center mb-6 text-white">Select Opposition Player</h3>
+                        <div className="grid grid-cols-1 gap-2 overflow-y-auto custom-scrollbar flex-1">
+                            {(() => {
+                                const oppositionTeam = activeTab === 'innings1' ? formData.team2 : formData.team1;
+                                // Try to find the squad from allTeams context first
+                                const teamData = allTeams.find(t => t.name === oppositionTeam);
+
+                                // Fallback: If we can't find teamData, maybe use bowling list if populated?
+                                // But bowling list only has *current* bowlers. We need full squad.
+                                // Best bet: use players from context filtering by team name.
+
+                                let oppositionPlayers = [];
+                                if (teamData && teamData.players) {
+                                    oppositionPlayers = teamData.players;
+                                } else if (players) {
+                                    // Fallback to global players list
+                                    oppositionPlayers = players.filter(p => p.team === oppositionTeam);
+                                }
+
+                                if (oppositionPlayers.length === 0) return <div className="text-gray-500 text-center italic">No players found for {oppositionTeam}.</div>;
+
+                                return oppositionPlayers.map((player, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => handleOppositionPlayerSelect(player.name)}
+                                        className="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold text-sm transition-transform hover:scale-105 border border-slate-700 flex justify-between items-center group text-left"
+                                    >
+                                        <span>{player.name}</span>
+                                        <span className="text-[10px] bg-red-500/20 text-red-300 px-2 py-1 rounded group-hover:bg-red-500/30">Select</span>
+                                    </button>
+                                ));
+                            })()}
+                        </div>
+                        <button
+                            onClick={() => { setShowOppositionSelector(false); setPendingOppositionUpdate(null); }}
+                            className="w-full mt-6 py-3 text-sm text-gray-400 hover:text-white transition-colors border-t border-white/5"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Squad Selector Modal for Batting XI */}
             {showSquadSelector && (
