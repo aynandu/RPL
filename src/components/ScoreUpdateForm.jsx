@@ -4,7 +4,7 @@ import { X, Save, Trash2, UserPlus } from 'lucide-react';
 import SquadSelector from './SquadSelector';
 
 const ScoreUpdateForm = ({ match, onClose }) => {
-    const { updateMatch, allTeams, players } = useGame(); // Get players from context
+    const { updateMatch, allTeams, players, batchUpdatePlayers } = useGame(); // Get players from context
     const [formData, setFormData] = useState({ ...match, oversChoosen: match.oversChoosen || '6 Over' });
     const [activeTab, setActiveTab] = useState('innings1'); // 'innings1' or 'innings2'
 
@@ -436,9 +436,77 @@ const ScoreUpdateForm = ({ match, onClose }) => {
         }
     };
 
+    const processMatchStats = (formData) => {
+        const updates = [];
+        const playerMap = new Map(); // id -> stats object
+
+        const getPlayer = (teamName, playerName) => {
+            if (!players) return null;
+            return players.find(p => p.team === teamName && p.name === playerName);
+        };
+
+        const initStats = () => ({
+            matches: 1,
+            runs: 0, balls: 0, fours: 0, sixes: 0, fifties: 0, hundreds: 0,
+            overs: 0, maidens: 0, runsConceded: 0, wickets: 0
+        });
+
+        const accumulateStats = (teamName, dataList, type) => {
+            if (!dataList) return;
+            dataList.forEach(entry => {
+                if (!entry.name) return;
+                const player = getPlayer(teamName, entry.name);
+                if (!player) return;
+
+                if (!playerMap.has(player.id)) {
+                    playerMap.set(player.id, { playerId: player.id, stats: initStats() });
+                }
+                const pStats = playerMap.get(player.id).stats;
+
+                if (type === 'batting') {
+                    const r = Number(entry.runs) || 0;
+                    pStats.runs += r;
+                    pStats.balls += Number(entry.balls) || 0;
+                    pStats.fours += Number(entry.fours) || 0;
+                    pStats.sixes += Number(entry.sixes) || 0;
+                    if (r >= 50 && r < 100) pStats.fifties += 1;
+                    if (r >= 100) pStats.hundreds += 1;
+                } else if (type === 'bowling') {
+                    pStats.overs += Number(entry.overs) || 0;
+                    pStats.maidens += Number(entry.maidens) || 0;
+                    pStats.runsConceded += Number(entry.runs) || 0;
+                    pStats.wickets += Number(entry.wickets) || 0;
+                }
+            });
+        };
+
+        // 1st Innings: Team 1 Batting, Team 2 Bowling
+        accumulateStats(formData.team1, formData.batting, 'batting');
+        accumulateStats(formData.team2, formData.bowling, 'bowling');
+
+        // 2nd Innings: Team 2 Batting, Team 1 Bowling
+        accumulateStats(formData.team2, formData.secondInningsBatting, 'batting');
+        accumulateStats(formData.team1, formData.secondInningsBowling, 'bowling');
+
+        if (playerMap.size > 0 && batchUpdatePlayers) {
+            batchUpdatePlayers(Array.from(playerMap.values()));
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        updateMatch(match.id, formData);
+
+        let finalData = { ...formData };
+
+        // Check if we should update stats
+        if (finalData.status === 'completed' && !finalData.statsProcessed) {
+            if (window.confirm("Match designated as Completed. Update player stats in Squad Management?")) {
+                processMatchStats(finalData);
+                finalData.statsProcessed = true;
+            }
+        }
+
+        updateMatch(match.id, finalData);
         alert('Match updates saved successfully!');
         // onClose(); // Keep window open as per user request
     };

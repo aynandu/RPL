@@ -91,18 +91,32 @@ const MatchCard = ({ match, onClick }) => {
                                 const runsNeeded = target - (t2Stats.runs || 0);
 
                                 // Balls Left Calculation
-                                const totalOversMatch = parseInt(match.oversChoosen) || 20;
-                                const totalBalls = totalOversMatch * 6;
-                                const currentOvers = Number(t2Stats.overs || 0);
-                                const completedOvers = Math.floor(currentOvers);
-                                const ballsInCurrentOver = Math.round((currentOvers - completedOvers) * 10);
-                                const ballsBowled = (completedOvers * 6) + ballsInCurrentOver;
-                                const ballsLeft = totalBalls - ballsBowled;
+                                let ballsLeft;
+                                if (match.innings2Overs && match.innings2Overs.length > 0) {
+                                    // Calculate by counting all empty cells in the over cards
+                                    const totalEmpty = match.innings2Overs.reduce((acc, over) => {
+                                        return acc + (over.balls ? over.balls.filter(b => b === "" || b === null).length : 6);
+                                    }, 0);
+                                    ballsLeft = totalEmpty;
+                                } else {
+                                    // Fallback: Standard calculation if detailed data missing
+                                    const totalOversMatch = parseInt(match.oversChoosen) || 20;
+                                    const totalBalls = totalOversMatch * 6;
+                                    const currentOvers = Number(t2Stats.overs || 0);
+                                    const completedOvers = Math.floor(currentOvers);
+                                    const ballsInCurrentOver = Math.round((currentOvers - completedOvers) * 10);
+                                    const ballsBowled = (completedOvers * 6) + ballsInCurrentOver;
+                                    ballsLeft = totalBalls - ballsBowled;
+                                }
 
-                                if (runsNeeded > 0 && ballsLeft >= 0) {
+                                // runsNeeded was already calculated above: const runsNeeded = target - (t2Stats.runs || 0);
+                                // We need to update it or use a new variable for display.
+                                const displayRunsNeeded = Math.max(0, runsNeeded);
+
+                                if (displayRunsNeeded >= 0 && ballsLeft >= 0) {
                                     return (
                                         <span className="text-[10px] text-red-400 font-bold mt-1 bg-red-900/30 px-2 py-0.5 rounded border border-red-500/20 whitespace-nowrap animate-pulse">
-                                            Need {runsNeeded} runs in {ballsLeft} balls
+                                            Need {displayRunsNeeded} runs in {ballsLeft} balls
                                         </span>
                                     );
                                 }
@@ -152,8 +166,8 @@ const MatchCard = ({ match, onClick }) => {
                             <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
                             {(() => {
                                 // Determine active innings data (could be batting or secondInningsBatting)
-                                // Since match object structure might vary, we check the standard array
-                                const currentBatting = match.batting && Array.isArray(match.batting) ? match.batting : [];
+                                const isSecondInnings = match.score.team2.overs > 0 || (match.secondInningsBatting && match.secondInningsBatting.length > 0 && match.score.team1.overs > 0);
+                                const currentBatting = isSecondInnings ? (match.secondInningsBatting || []) : (match.batting || []);
 
                                 // Filter for Not Out / Next to Bat (but usually we show Not Out i.e. on crease)
                                 const activeBatters = currentBatting.filter(p => !p.dismissalType || p.dismissalType === 'notOut').slice(0, 2); // Show max 2

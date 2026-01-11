@@ -31,6 +31,11 @@ export const GameProvider = ({ children }) => {
         return saved ? JSON.parse(saved) : [];
     });
 
+    const [tournamentTitle, setTournamentTitle] = useState(() => {
+        const saved = localStorage.getItem('rpl_title');
+        return saved ? JSON.parse(saved) : { name: 'Revenue Premier League', season: 'S2' };
+    });
+
     // Persist changes
     useEffect(() => {
         localStorage.setItem('rpl_matches', JSON.stringify(matches));
@@ -52,6 +57,10 @@ export const GameProvider = ({ children }) => {
         localStorage.setItem('rpl_is_admin', isAdmin);
     }, [isAdmin]);
 
+    useEffect(() => {
+        localStorage.setItem('rpl_title', JSON.stringify(tournamentTitle));
+    }, [tournamentTitle]);
+
     // Cross-tab Synchronization
     useEffect(() => {
         const handleStorageChange = (e) => {
@@ -65,6 +74,8 @@ export const GameProvider = ({ children }) => {
                 setPlayers(JSON.parse(e.newValue || '[]'));
             } else if (e.key === 'rpl_is_admin') {
                 setIsAdmin(e.newValue === 'true');
+            } else if (e.key === 'rpl_title') {
+                setTournamentTitle(JSON.parse(e.newValue || '{}'));
             }
         };
 
@@ -122,6 +133,31 @@ export const GameProvider = ({ children }) => {
         setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     };
 
+    const batchUpdatePlayers = (updates) => {
+        // updates: [{ playerId, stats: { runs: 0, ... } }]
+        setPlayers(prev => prev.map(p => {
+            const update = updates.find(u => u.playerId === p.id);
+            if (update) {
+                const s = update.stats;
+                return {
+                    ...p,
+                    matches: (p.matches || 0) + (s.matches || 0),
+                    runs: (p.runs || 0) + (s.runs || 0),
+                    balls: (p.balls || 0) + (s.balls || 0),
+                    fours: (p.fours || 0) + (s.fours || 0),
+                    sixes: (p.sixes || 0) + (s.sixes || 0),
+                    fifties: (p.fifties || 0) + (s.fifties || 0),
+                    hundreds: (p.hundreds || 0) + (s.hundreds || 0),
+                    overs: (Number(p.overs) || 0) + (Number(s.overs) || 0),
+                    maidens: (Number(p.maidens) || 0) + (Number(s.maidens) || 0),
+                    runsConceded: (Number(p.runsConceded) || 0) + (Number(s.runsConceded) || 0),
+                    wickets: (Number(p.wickets) || 0) + (Number(s.wickets) || 0)
+                };
+            }
+            return p;
+        }));
+    };
+
     const deletePlayer = (id) => {
         setPlayers(prev => prev.filter(p => p.id !== id));
     };
@@ -143,7 +179,10 @@ export const GameProvider = ({ children }) => {
             players,
             addPlayer,
             updatePlayer,
-            deletePlayer
+            batchUpdatePlayers,
+            deletePlayer,
+            tournamentTitle,
+            updateTournamentTitle: setTournamentTitle
         }}>
             {children}
         </GameContext.Provider>

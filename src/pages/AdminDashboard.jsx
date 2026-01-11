@@ -6,9 +6,22 @@ import PointsTableEditor from '../components/PointsTableEditor';
 import TeamManager from '../components/TeamManager';
 
 const AdminDashboard = () => {
-    const { matches, images, addMatch, deleteMatch, updateImages } = useGame();
+    const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle } = useGame();
     const [editingMatch, setEditingMatch] = useState(null);
     const [newImageUrl, setNewImageUrl] = useState('');
+
+    // Title Settings State
+    const [titleSettings, setTitleSettings] = useState(tournamentTitle || { name: '', season: '' });
+
+    // Sync state when context loads
+    React.useEffect(() => {
+        if (tournamentTitle) setTitleSettings(tournamentTitle);
+    }, [tournamentTitle]);
+
+    const handleUpdateTitle = () => {
+        updateTournamentTitle(titleSettings);
+        alert('Website Title Updated Successfully!');
+    };
 
     const handleAddImage = (e) => {
         e.preventDefault();
@@ -58,6 +71,39 @@ const AdminDashboard = () => {
             <h1 className="text-4xl font-black mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 drop-shadow-lg">
                 Admin Dashboard
             </h1>
+
+            {/* Website Settings */}
+            <div className="glass-card p-6 border-l-4 border-l-yellow-500">
+                <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2">
+                    <span className="w-2 h-8 bg-yellow-500 rounded-full inline-block"></span>
+                    Website Settings
+                </h2>
+                <div className="flex flex-col md:flex-row gap-4 items-end">
+                    <div className="flex-1 w-full">
+                        <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Tournament Name</label>
+                        <input
+                            type="text"
+                            value={titleSettings.name}
+                            onChange={(e) => setTitleSettings({ ...titleSettings, name: e.target.value })}
+                            className="w-full glass-input p-3 rounded-xl text-white placeholder-gray-600"
+                            placeholder="e.g. Revenue Premier League"
+                        />
+                    </div>
+                    <div className="w-full md:w-32">
+                        <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Season Tag</label>
+                        <input
+                            type="text"
+                            value={titleSettings.season}
+                            onChange={(e) => setTitleSettings({ ...titleSettings, season: e.target.value })}
+                            className="w-full glass-input p-3 rounded-xl text-white placeholder-gray-600"
+                            placeholder="e.g. S2"
+                        />
+                    </div>
+                    <button onClick={handleUpdateTitle} className="bg-gradient-to-r from-yellow-600 to-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-yellow-500/20 transition-all whitespace-nowrap">
+                        Update Title
+                    </button>
+                </div>
+            </div>
 
             {/* Carousel Management */}
             <div className="glass-card p-6 border-l-4 border-l-cyan-500">

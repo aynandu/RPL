@@ -130,24 +130,58 @@ const ScoreCard = ({ match, onClose }) => {
                             const runsNeeded = target - (t2Stats.runs || 0);
 
                             // Balls Left Calculation
-                            const totalOversMatch = parseInt(match.oversChoosen) || 20;
-                            const totalBalls = totalOversMatch * 6;
-                            const currentOvers = Number(t2Stats.overs || 0);
-                            const completedOvers = Math.floor(currentOvers);
-                            const ballsInCurrentOver = Math.round((currentOvers - completedOvers) * 10);
-                            const ballsBowled = (completedOvers * 6) + ballsInCurrentOver;
-                            const ballsLeft = totalBalls - ballsBowled;
+                            let ballsLeft;
+                            if (match.innings2Overs && match.innings2Overs.length > 0) {
+                                // Calculate by counting all empty cells in the over cards
+                                const totalEmpty = match.innings2Overs.reduce((acc, over) => {
+                                    return acc + (over.balls ? over.balls.filter(b => b === "" || b === null).length : 6);
+                                }, 0);
+                                ballsLeft = totalEmpty;
+                            } else {
+                                // Fallback
+                                const totalOversMatch = parseInt(match.oversChoosen) || 20;
+                                const totalBalls = totalOversMatch * 6;
+                                const currentOvers = Number(t2Stats.overs || 0);
+                                const completedOvers = Math.floor(currentOvers);
+                                const ballsInCurrentOver = Math.round((currentOvers - completedOvers) * 10);
+                                const ballsBowled = (completedOvers * 6) + ballsInCurrentOver;
+                                ballsLeft = totalBalls - ballsBowled;
+                            }
 
-                            if (runsNeeded > 0 && ballsLeft >= 0) {
+                            // runsNeeded calculated above: const runsNeeded = target - (t2Stats.runs || 0);
+                            const displayRunsNeeded = Math.max(0, runsNeeded);
+
+                            if (displayRunsNeeded >= 0 && ballsLeft >= 0) {
                                 return (
                                     <div className="bg-gradient-to-r from-red-900/40 via-red-900/20 to-red-900/40 border-y border-red-500/20 py-3 text-center -mt-4 mb-6 relative z-0">
                                         <p className="text-lg md:text-xl font-black text-red-300 tracking-wider uppercase animate-pulse">
-                                            Need <span className="text-white">{runsNeeded}</span> runs in <span className="text-white">{ballsLeft}</span> balls
+                                            Need <span className="text-white">{displayRunsNeeded}</span> runs in <span className="text-white">{ballsLeft}</span> balls
                                         </p>
                                     </div>
                                 );
                             }
                         }
+
+                        // Result Text for Completed Matches
+                        if (match.status === 'completed') {
+                            const t1 = match.score.team1;
+                            const t2 = match.score.team2;
+                            let resultText = "Match Tied";
+                            if (t1.runs > t2.runs) {
+                                resultText = `${match.team1} won by ${t1.runs - t2.runs} runs`;
+                            } else if (t2.runs > t1.runs) {
+                                resultText = `${match.team2} won by ${10 - t2.wickets} wickets`;
+                            }
+
+                            return (
+                                <div className="bg-gradient-to-r from-green-900/40 via-green-900/20 to-green-900/40 border-y border-green-500/20 py-3 text-center -mt-4 mb-6 relative z-0">
+                                    <p className="text-lg md:text-xl font-black text-green-400 tracking-wider uppercase drop-shadow-lg">
+                                        {resultText}
+                                    </p>
+                                </div>
+                            );
+                        }
+
                         return null;
                     })()}
 
