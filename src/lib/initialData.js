@@ -64,14 +64,7 @@ export const INITIAL_IMAGES = [
     "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?q=80&w=1920&auto=format&fit=crop"
 ];
 
-export const INITIAL_POINTS = [
-    { team: "Revenue Royals", played: 1, won: 1, lost: 0, tied: 0, points: 2, nrr: 0.15 },
-    { team: "Audit Avengers", played: 1, won: 0, lost: 1, tied: 0, points: 0, nrr: -0.15 },
-    { team: "Tax Titans", played: 0, won: 0, lost: 0, tied: 0, points: 0, nrr: 0 },
-    { team: "Finance Falcons", played: 0, won: 0, lost: 0, tied: 0, points: 0, nrr: 0 },
-    { team: "Ledger Legends", played: 0, won: 0, lost: 0, tied: 0, points: 0, nrr: 0 },
-    { team: "Balance Sheet Boys", played: 0, won: 0, lost: 0, tied: 0, points: 0, nrr: 0 },
-];
+export const INITIAL_POINTS = [];
 
 export const ALL_TEAMS = [
     "Revenue Royals",

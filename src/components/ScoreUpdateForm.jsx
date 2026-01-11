@@ -27,7 +27,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                     if (newOvers.length < totalOvers) {
                         // Add more
                         for (let i = newOvers.length; i < totalOvers; i++) {
-                            newOvers.push({ over: i + 1, balls: Array(6).fill("") });
+                            newOvers.push({ over: i + 1, balls: Array(6).fill(""), bowler: "", extras: "" });
                         }
                     } else {
                         // Truncate (if switched 8 -> 6)
@@ -38,6 +38,45 @@ const ScoreUpdateForm = ({ match, onClose }) => {
             }
         });
     }, [formData.oversChoosen]);
+
+    // Auto-calculate scores based on Over-by-Over data
+    useEffect(() => {
+        const calculateStats = (oversData) => {
+            if (!oversData) return { runsFromBalls: 0, totalExtras: 0 };
+            return oversData.reduce((acc, over) => {
+                const ballsSum = over.balls.reduce((sum, ball) => sum + (Number(ball) || 0), 0);
+                const extras = Number(over.extras) || 0;
+                return {
+                    runsFromBalls: acc.runsFromBalls + ballsSum,
+                    totalExtras: acc.totalExtras + extras
+                };
+            }, { runsFromBalls: 0, totalExtras: 0 });
+        };
+
+        const stats1 = calculateStats(formData.innings1Overs);
+        const stats2 = calculateStats(formData.innings2Overs);
+
+        const totalRuns1 = stats1.runsFromBalls + stats1.totalExtras;
+        const totalRuns2 = stats2.runsFromBalls + stats2.totalExtras;
+
+        setFormData(prev => {
+            // Only update if values are different
+            if (prev.score.team1.runs === totalRuns1 &&
+                prev.score.team2.runs === totalRuns2 &&
+                prev.score.team1.extras === stats1.totalExtras &&
+                prev.score.team2.extras === stats2.totalExtras) {
+                return prev;
+            }
+            return {
+                ...prev,
+                score: {
+                    ...prev.score,
+                    team1: { ...prev.score.team1, runs: totalRuns1, extras: stats1.totalExtras },
+                    team2: { ...prev.score.team2, runs: totalRuns2, extras: stats2.totalExtras }
+                }
+            };
+        });
+    }, [formData.innings1Overs, formData.innings2Overs]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -67,7 +106,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
         setFormData(prev => {
             const newBatting = [...(prev[key] || [])];
             if (!newBatting[index]) {
-                newBatting[index] = { name: "", runs: "", balls: "", fours: "", sixes: "", dismissalType: "notOut", dismissalBowler: "", dismissalFielder: "" };
+                newBatting[index] = { name: "", runs: "", balls: "", fours: "", sixes: "", dismissalType: "nextToBat", dismissalBowler: "", dismissalFielder: "" };
             }
             newBatting[index] = {
                 ...newBatting[index],
@@ -98,18 +137,24 @@ const ScoreUpdateForm = ({ match, onClose }) => {
             }
             newBowling[index] = {
                 ...newBowling[index],
-                [field]: (['overs', 'runs', 'wickets'].includes(field)) ? (value === '' ? '' : Number(value)) : value
+                [field]: (['overs', 'runs', 'wickets', 'extras'].includes(field)) ? (value === '' ? '' : Number(value)) : value
             };
             return { ...prev, [key]: newBowling };
         });
     };
 
-    const addBowler = () => {
+    const addBowler = (e) => {
+        if (e) e.preventDefault();
         const key = getBowlingKey();
-        setFormData(prev => ({
-            ...prev,
-            [key]: [...(prev[key] || []), { name: "", overs: "", runs: "", wickets: "" }]
-        }));
+        setFormData(prev => {
+            const currentList = prev[key];
+            // Ensure we're working with an array, initializing if null/undefined
+            const listArray = Array.isArray(currentList) ? currentList : [];
+            return {
+                ...prev,
+                [key]: [...listArray, { name: "", overs: "", runs: "", wickets: "" }]
+            };
+        });
     };
 
     const removeBowler = (index) => {
@@ -127,7 +172,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
         if (!formData[key] || !Array.isArray(formData[key])) {
             const initialBatting = Array(11).fill(null).map(() => ({
                 name: "", runs: "", balls: "", fours: "", sixes: "",
-                dismissalType: "notOut", dismissalBowler: "", dismissalFielder: ""
+                dismissalType: "nextToBat", dismissalBowler: "", dismissalFielder: ""
             }));
             setFormData(prev => ({
                 ...prev,
@@ -266,7 +311,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 <span className="text-xs font-normal text-blue-400 opacity-70">Runs / Wkts / Overs</span>
                             </h3>
                             <div className="grid grid-cols-3 gap-2">
-                                <input type="number" placeholder="Runs" value={formData.score.team1.runs} onChange={(e) => handleScoreChange('team1', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
+                                <input type="number" placeholder="Runs" value={formData.score.team1.runs} onChange={(e) => handleScoreChange('team1', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" disabled title="Auto-calculated" />
                                 <input type="number" placeholder="Wkts" value={formData.score.team1.wickets} onChange={(e) => handleScoreChange('team1', 'wickets', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
                                 <input type="number" placeholder="Overs" value={formData.score.team1.overs} onChange={(e) => handleScoreChange('team1', 'overs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" step="0.1" />
                             </div>
@@ -277,8 +322,8 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 <span className="text-xs font-normal text-purple-400 opacity-70">Runs / Wkts / Overs</span>
                             </h3>
                             <div className="grid grid-cols-3 gap-2">
-                                <input type="number" placeholder="Runs" value={formData.score.team2.runs} onChange={(e) => handleScoreChange('team2', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
-                                <input type="number" placeholder="Wickets" value={formData.score.team2.wickets} onChange={(e) => handleScoreChange('team2', 'wickets', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
+                                <input type="number" placeholder="Runs" value={formData.score.team2.runs} onChange={(e) => handleScoreChange('team2', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" disabled title="Auto-calculated" />
+                                <input type="number" placeholder="Wkts" value={formData.score.team2.wickets} onChange={(e) => handleScoreChange('team2', 'wickets', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
                                 <input type="number" placeholder="Overs" value={formData.score.team2.overs} onChange={(e) => handleScoreChange('team2', 'overs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" step="0.1" />
                             </div>
                         </div>
@@ -348,7 +393,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                             </div>
                                             <div className="col-span-2">
                                                 <select
-                                                    value={batter.dismissalType || "notOut"}
+                                                    value={batter.dismissalType || "nextToBat"}
                                                     onChange={(e) => handleBattingChange(idx, 'dismissalType', e.target.value)}
                                                     className="w-full glass-input p-2 rounded text-xs"
                                                 >
@@ -357,7 +402,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                     <option value="caught" className="bg-slate-900">Caught</option>
                                                     <option value="stumping" className="bg-slate-900">Stumping</option>
                                                     <option value="runOut" className="bg-slate-900">Run Out</option>
-                                                    <option value="mankad" className="bg-slate-900">Mankad</option>
+                                                    <option value="nextToBat" className="bg-slate-900">Next-to-bat</option>
                                                 </select>
                                             </div>
 
@@ -416,6 +461,19 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+                        {currentBatting && Array.isArray(currentBatting) && (
+                            <div className="mt-4 flex justify-end items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                                <label className="text-sm font-bold text-gray-400 uppercase tracking-wider">Innings Extras:</label>
+                                <input
+                                    type="number"
+                                    value={activeTab === 'innings1' ? (formData.score.team1.extras || 0) : (formData.score.team2.extras || 0)}
+                                    readOnly
+                                    className="glass-input p-2 rounded text-center w-24 font-bold text-yellow-400 bg-black/20 cursor-not-allowed"
+                                    placeholder="0"
+                                    title="Calculated from Over-by-Over Extras"
+                                />
                             </div>
                         )}
                     </div>
@@ -507,10 +565,32 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 <div key={overIdx} className="glass-card p-3 rounded-xl border border-white/10">
                                     <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-1">
                                         <h4 className="font-bold text-sm text-gray-300">Over {overData.over}</h4>
-                                        <span className="text-xs font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">
-                                            Total: {overData.balls.reduce((sum, ball) => sum + (Number(ball) || 0), 0)}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-500">Total:</span>
+                                            <span className="text-xs font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-bold">
+                                                {(overData.balls.reduce((sum, ball) => sum + (Number(ball) || 0), 0) + (Number(overData.extras) || 0))}
+                                            </span>
+                                        </div>
                                     </div>
+
+                                    {/* Bowler Name Input */}
+                                    <div className="mb-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Bowler Name"
+                                            value={overData.bowler || ""}
+                                            onChange={(e) => {
+                                                const key = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
+                                                setFormData(prev => {
+                                                    const newOvers = [...(prev[key] || [])];
+                                                    newOvers[overIdx] = { ...newOvers[overIdx], bowler: e.target.value };
+                                                    return { ...prev, [key]: newOvers };
+                                                });
+                                            }}
+                                            className="w-full glass-input p-1.5 rounded text-xs text-gray-300 placeholder-gray-600 mb-1"
+                                        />
+                                    </div>
+
                                     <div className="grid grid-cols-6 gap-1 mb-2">
                                         {overData.balls.map((ball, ballIdx) => (
                                             <input
@@ -532,6 +612,25 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                             />
                                         ))}
                                     </div>
+
+                                    <div className="flex items-center justify-between gap-2 mb-2 bg-white/5 p-1.5 rounded">
+                                        <label className="text-xs text-gray-400 font-bold uppercase">Extras</label>
+                                        <input
+                                            type="number"
+                                            value={overData.extras || ""}
+                                            onChange={(e) => {
+                                                const key = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
+                                                setFormData(prev => {
+                                                    const newOvers = [...(prev[key] || [])];
+                                                    newOvers[overIdx] = { ...newOvers[overIdx], extras: e.target.value };
+                                                    return { ...prev, [key]: newOvers };
+                                                });
+                                            }}
+                                            className="w-16 glass-input p-1 rounded text-center text-xs font-bold text-yellow-400"
+                                            placeholder="0"
+                                        />
+                                    </div>
+
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
                                             type="button"
@@ -577,8 +676,8 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                         <Save size={20} /> Save Updates
                     </button>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

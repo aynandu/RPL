@@ -26,6 +26,11 @@ export const GameProvider = ({ children }) => {
         return localStorage.getItem('rpl_is_admin') === 'true';
     });
 
+    const [players, setPlayers] = useState(() => {
+        const saved = localStorage.getItem('rpl_players');
+        return saved ? JSON.parse(saved) : [];
+    });
+
     // Persist changes
     useEffect(() => {
         localStorage.setItem('rpl_matches', JSON.stringify(matches));
@@ -38,6 +43,10 @@ export const GameProvider = ({ children }) => {
     useEffect(() => {
         localStorage.setItem('rpl_points', JSON.stringify(pointsTable));
     }, [pointsTable]);
+
+    useEffect(() => {
+        localStorage.setItem('rpl_players', JSON.stringify(players));
+    }, [players]);
 
     useEffect(() => {
         localStorage.setItem('rpl_is_admin', isAdmin);
@@ -66,10 +75,6 @@ export const GameProvider = ({ children }) => {
     const addMatch = (match) => {
         setMatches(prev => {
             const maxId = prev.length > 0 ? Math.max(...prev.map(m => m.id)) : 0;
-            // Ensure nextId is reasonable. If maxId is huge (timestamp), this will continue being huge.
-            // But for new clean starts, it works.
-            // If we want to force small numbers even if timestamps exist, we'd need to re-index, which is dangerous.
-            // Let's stick to safe increment.
             return [...prev, { ...match, id: maxId + 1 }];
         });
     };
@@ -86,6 +91,21 @@ export const GameProvider = ({ children }) => {
         setPointsTable(updatedTable);
     };
 
+    const addPlayer = (player) => {
+        setPlayers(prev => {
+            const maxId = prev.length > 0 ? Math.max(...prev.map(p => p.id || 0)) : 0;
+            return [...prev, { ...player, id: maxId + 1 }];
+        });
+    };
+
+    const updatePlayer = (id, updates) => {
+        setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    };
+
+    const deletePlayer = (id) => {
+        setPlayers(prev => prev.filter(p => p.id !== id));
+    };
+
     return (
         <GameContext.Provider value={{
             matches,
@@ -99,7 +119,11 @@ export const GameProvider = ({ children }) => {
             updateImages,
             pointsTable,
             updatePointsTable,
-            allTeams
+            allTeams,
+            players,
+            addPlayer,
+            updatePlayer,
+            deletePlayer
         }}>
             {children}
         </GameContext.Provider>

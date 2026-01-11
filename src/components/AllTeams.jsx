@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { Users } from 'lucide-react';
+import PlayerManager from './PlayerManager';
 
 const AllTeams = () => {
     const { allTeams } = useGame();
+    const [selectedTeam, setSelectedTeam] = useState(null);
 
     return (
         <div className="bg-slate-900 rounded-xl shadow-md overflow-hidden border border-slate-800">
@@ -14,12 +16,24 @@ const AllTeams = () => {
             <div className="p-4">
                 <ul className="space-y-2">
                     {allTeams.map((team, idx) => (
-                        <li key={idx} className="p-2 bg-slate-800 rounded border border-slate-700 font-medium text-gray-300 hover:bg-slate-700 transition-colors cursor-default hover:text-white">
+                        <li
+                            key={idx}
+                            onClick={() => setSelectedTeam(team)}
+                            className="p-2 bg-slate-800 rounded border border-slate-700 font-medium text-gray-300 hover:bg-slate-700 transition-colors cursor-pointer hover:text-white"
+                        >
                             {team}
                         </li>
                     ))}
                 </ul>
             </div>
+
+            {selectedTeam && (
+                <PlayerManager
+                    teamName={selectedTeam}
+                    onClose={() => setSelectedTeam(null)}
+                    readOnly={true}
+                />
+            )}
         </div>
     );
 };

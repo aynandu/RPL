@@ -139,7 +139,7 @@ const ScoreCard = ({ match, onClose }) => {
                                                         {batter.dismissalType === 'caught' && `c ${batter.dismissalFielder} b ${batter.dismissalBowler}`}
                                                         {batter.dismissalType === 'stumping' && `st ${batter.dismissalFielder} b ${batter.dismissalBowler}`}
                                                         {batter.dismissalType === 'runOut' && `run out (${batter.dismissalFielder})`}
-                                                        {batter.dismissalType === 'mankad' && `mankad (${batter.dismissalFielder || 'bowler'})`}
+                                                        {batter.dismissalType === 'nextToBat' && <span className="text-yellow-400 font-bold">Next-to-bat</span>}
                                                     </div>
                                                 </td>
                                                 <td className="p-3 text-right font-bold text-white">{batter.runs || 0}</td>
@@ -154,6 +154,13 @@ const ScoreCard = ({ match, onClose }) => {
                                             <td colSpan="6" className="p-4 text-center text-gray-500 italic">No batting data available yet.</td>
                                         </tr>
                                     )}
+                                    {/* Extras Row */}
+                                    <tr className="bg-slate-700/50 font-bold border-t border-slate-600">
+                                        <td colSpan="4" className="p-3 text-right text-gray-300">Extras</td>
+                                        <td colSpan="2" className="p-3 text-left text-yellow-500">
+                                            {activeTab === 'innings1' ? (match.score.team1.extras || 0) : (match.score.team2.extras || 0)}
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>

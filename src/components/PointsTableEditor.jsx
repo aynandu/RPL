@@ -17,8 +17,8 @@ const PointsTableEditor = () => {
 
         // Auto calculate Points: (Won * 2) + Tied
         if (field === 'won' || field === 'tied') {
-            const won = field === 'won' ? Number(value) : Number(updated[index].won);
-            const tied = field === 'tied' ? Number(value) : Number(updated[index].tied || 0);
+            const won = field === 'won' ? Number(value || 0) : Number(updated[index].won || 0);
+            const tied = field === 'tied' ? Number(value || 0) : Number(updated[index].tied || 0);
             updated[index].points = (won * 2) + tied;
         }
 
@@ -27,37 +27,22 @@ const PointsTableEditor = () => {
     };
 
     const handleSave = () => {
-        updatePointsTable(localTable);
+        const sanitizedTable = localTable.map(team => ({
+            ...team,
+            played: Number(team.played) || 0,
+            won: Number(team.won) || 0,
+            lost: Number(team.lost) || 0,
+            tied: Number(team.tied) || 0,
+            nrr: Number(team.nrr) || 0,
+            points: (Number(team.won) || 0) * 2 + (Number(team.tied) || 0)
+        }));
+        updatePointsTable(sanitizedTable);
+        setLocalTable(sanitizedTable);
         setIsDirty(false);
     };
 
-    const handleAddTeam = () => {
-        const teamName = prompt("Enter new team name:");
-        if (!teamName) return;
-
-        const newTeam = {
-            team: teamName,
-            played: 0,
-            won: 0,
-            lost: 0,
-            tied: 0,
-            points: 0,
-            nrr: 0
-        };
-        setLocalTable([...localTable, newTeam]);
-        setIsDirty(true);
-    };
-
-    const handleDeleteTeam = (index) => {
-        if (window.confirm("Are you sure you want to delete this team?")) {
-            const updated = localTable.filter((_, i) => i !== index);
-            setLocalTable(updated);
-            setIsDirty(true);
-        }
-    };
-
     return (
-        <div className="glass-card p-6 border-l-4 border-l-orange-500 h-full">
+        <div className="glass-card p-6 border-l-4 border-l-orange-500">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                     <span className="w-2 h-8 bg-orange-500 rounded-full inline-block"></span>
@@ -69,14 +54,6 @@ const PointsTableEditor = () => {
                         className="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-5 py-2.5 rounded-full flex items-center gap-2 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all font-bold animate-pulse"
                     >
                         <Save size={18} /> Save Changes
-                    </button>
-                )}
-                {!isDirty && (
-                    <button
-                        onClick={handleAddTeam}
-                        className="bg-white/10 text-gray-300 px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-white/20 transition-all font-semibold"
-                    >
-                        <Plus size={18} /> Add Team
                     </button>
                 )}
             </div>
@@ -92,25 +69,19 @@ const PointsTableEditor = () => {
                             <th className="px-2 py-3 text-yellow-400">T</th>
                             <th className="px-2 py-3 text-blue-300">NRR</th>
                             <th className="px-2 py-3 text-orange-400">Pts</th>
-                            <th className="px-2 py-3"></th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                         {localTable.map((team, idx) => (
                             <tr key={idx} className="hover:bg-white/[0.03] transition-colors group">
-                                <td className="px-3 py-2 text-left">
-                                    <input
-                                        type="text"
-                                        value={team.team}
-                                        onChange={(e) => handleChange(idx, 'team', e.target.value)}
-                                        className="w-full bg-transparent border-b border-transparent focus:border-blue-500 text-white p-1 outline-none font-medium min-w-[150px] transition-colors"
-                                    />
+                                <td className="px-3 py-2 text-left font-bold text-gray-200">
+                                    {team.team}
                                 </td>
                                 <td className="px-1 py-1">
                                     <input
                                         type="number"
                                         value={team.played}
-                                        onChange={(e) => handleChange(idx, 'played', Number(e.target.value))}
+                                        onChange={(e) => handleChange(idx, 'played', e.target.value === '' ? '' : Number(e.target.value))}
                                         className="w-12 bg-transparent text-center text-gray-400 focus:text-white p-1 outline-none"
                                     />
                                 </td>
@@ -118,7 +89,7 @@ const PointsTableEditor = () => {
                                     <input
                                         type="number"
                                         value={team.won}
-                                        onChange={(e) => handleChange(idx, 'won', Number(e.target.value))}
+                                        onChange={(e) => handleChange(idx, 'won', e.target.value === '' ? '' : Number(e.target.value))}
                                         className="w-12 bg-transparent text-center text-gray-400 focus:text-green-400 font-bold p-1 outline-none"
                                     />
                                 </td>
@@ -126,7 +97,7 @@ const PointsTableEditor = () => {
                                     <input
                                         type="number"
                                         value={team.lost}
-                                        onChange={(e) => handleChange(idx, 'lost', Number(e.target.value))}
+                                        onChange={(e) => handleChange(idx, 'lost', e.target.value === '' ? '' : Number(e.target.value))}
                                         className="w-12 bg-transparent text-center text-gray-400 focus:text-red-400 font-bold p-1 outline-none"
                                     />
                                 </td>
@@ -134,7 +105,7 @@ const PointsTableEditor = () => {
                                     <input
                                         type="number"
                                         value={team.tied || 0}
-                                        onChange={(e) => handleChange(idx, 'tied', Number(e.target.value))}
+                                        onChange={(e) => handleChange(idx, 'tied', e.target.value === '' ? '' : Number(e.target.value))}
                                         className="w-12 bg-transparent text-center text-gray-400 focus:text-yellow-400 p-1 outline-none"
                                     />
                                 </td>
@@ -149,14 +120,6 @@ const PointsTableEditor = () => {
                                 </td>
                                 <td className="px-2 py-2 font-black text-orange-400 text-lg">
                                     {team.points}
-                                </td>
-                                <td className="px-2 py-2">
-                                    <button
-                                        onClick={() => handleDeleteTeam(idx)}
-                                        className="text-gray-600 hover:text-red-400 p-2 rounded-full hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
                                 </td>
                             </tr>
                         ))}
