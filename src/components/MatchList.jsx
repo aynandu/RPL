@@ -98,7 +98,7 @@ const MatchCard = ({ match, onClick }) => {
                     <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-center text-sm text-gray-300 font-medium">
                         <span className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                            {match.batting ? `${match.batting.striker.name} *` : 'Match in Progress'}
+                            {match.batting && Array.isArray(match.batting) && match.batting[0] ? `${match.batting[0].name} *` : (match.batting && match.batting.striker ? `${match.batting.striker.name} *` : 'Match in Progress')}
                         </span>
                         <ChevronRight className="w-4 h-4 text-blue-400 group-hover:translate-x-1 transition-transform" />
                     </div>

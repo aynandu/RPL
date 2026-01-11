@@ -194,7 +194,7 @@ const ScoreCard = ({ match, onClose }) => {
                                                     {bowler.name}
                                                 </td>
                                                 <td className="p-3 text-right">{bowler.overs || 0}</td>
-                                                <td className="p-3 text-right">0</td>
+                                                <td className="p-3 text-right">{bowler.maidens || 0}</td>
                                                 <td className="p-3 text-right">{bowler.runs || 0}</td>
                                                 <td className="p-3 text-right font-bold text-blue-400">{bowler.wickets || 0}</td>
                                                 <td className="p-3 text-right">{(bowler.overs > 0 ? (bowler.runs / bowler.overs).toFixed(1) : '0.0')}</td>
