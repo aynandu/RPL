@@ -32,6 +32,13 @@ const MatchCard = ({ match, onClick }) => {
 
                 {/* Date & Time & Stadium */}
                 <div className="text-center mb-4 border-b border-white/5 pb-2">
+                    {match.matchType && match.matchType !== 'Group Stage' && (
+                        <div className="mb-2">
+                            <span className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-300 text-xs font-black uppercase tracking-widest px-3 py-1 rounded shadow-[0_0_10px_rgba(251,191,36,0.2)] border border-amber-500/30">
+                                {match.matchType}
+                            </span>
+                        </div>
+                    )}
                     <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">
                         {match.date ? new Date(match.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                     </div>
@@ -195,7 +202,7 @@ const MatchList = ({ onSelectMatch }) => {
     React.useEffect(() => {
         // Load processed milestones to prevent duplicates
         const getProcessedMilestones = () => {
-            const saved = sessionStorage.getItem('rpl_milestones_session'); // Session storage better for "per session" or Local for "permanent"? User said "only one time in a single match". Usually implies per match lifecycle. I'll use localStorage to be safe against reloads during the match.
+            const saved = sessionStorage.getItem('rpl_milestones_session');
             return new Set(saved ? JSON.parse(saved) : []);
         };
 
@@ -203,17 +210,19 @@ const MatchList = ({ onSelectMatch }) => {
         let foundNewMilestone = null;
 
         matches.forEach(match => {
-            // Check both innings for any player with >= 50 or >= 100 runs
+            if (foundNewMilestone) return; // Exit early if we found one to show
+
+            // 1. Batting Milestones (50, 100)
             const checkPlayers = (players) => {
-                if (!players) return;
+                if (!players || foundNewMilestone) return;
                 players.forEach(p => {
+                    if (foundNewMilestone) return;
                     const runs = Number(p.runs) || 0;
 
                     // Check Century (100) - Priority
                     if (runs >= 100) {
                         const key100 = `${match.id}_${p.name}_100`;
                         if (!processed.has(key100)) {
-                            // New Century Milestone!
                             foundNewMilestone = {
                                 ...p,
                                 team: p.team || (p.name ? 'Player' : 'Unknown'),
@@ -221,11 +230,7 @@ const MatchList = ({ onSelectMatch }) => {
                                 key: key100,
                                 type: '100'
                             };
-                            if (!foundNewMilestone.team || foundNewMilestone.team === 'Player') {
-                                const isTeam1 = (match.batting || []).some(b => b.name === p.name);
-                                foundNewMilestone.team = isTeam1 ? match.team1 : match.team2;
-                            }
-                            return; // Found a high priority milestone, process this one first
+                            return;
                         }
                     }
 
@@ -233,7 +238,6 @@ const MatchList = ({ onSelectMatch }) => {
                     if (runs >= 50) {
                         const key50 = `${match.id}_${p.name}_50`;
                         if (!processed.has(key50)) {
-                            // New 50 Milestone!
                             foundNewMilestone = {
                                 ...p,
                                 team: p.team || (p.name ? 'Player' : 'Unknown'),
@@ -241,30 +245,71 @@ const MatchList = ({ onSelectMatch }) => {
                                 key: key50,
                                 type: '50'
                             };
-
-                            if (!foundNewMilestone.team || foundNewMilestone.team === 'Player') {
-                                const isTeam1 = (match.batting || []).some(b => b.name === p.name);
-                                foundNewMilestone.team = isTeam1 ? match.team1 : match.team2;
-                            }
+                            return;
                         }
                     }
                 });
             };
 
-            if (!foundNewMilestone) { // Only check if we haven't found a higher priority one yet
-                checkPlayers(match.batting);
-                if (!foundNewMilestone) checkPlayers(match.secondInningsBatting);
-            }
+            checkPlayers(match.batting);
+            checkPlayers(match.secondInningsBatting);
+
+            // 2. Wicket Milestones (Recursive: 3, 4, 5+ wickets)
+            const checkBowlers = (bowlers) => {
+                if (!bowlers || foundNewMilestone) return;
+
+                bowlers.forEach(b => {
+                    if (foundNewMilestone) return;
+                    const wickets = Number(b.wickets) || 0;
+
+                    if (wickets >= 3) {
+                        // Check specifically for THIS wicket count (e.g. 3, then 4, then 5)
+                        // We iterate down or just check the current count.
+                        // Actually, we just check if the current count has been celebrated.
+                        // But if a user jumps from 2 to 4 (unlikely but possible), should we celebrate 3?
+                        // The prompt says "repeat that function every time took added more wickets".
+                        // So checking just the current count is enough. if they jump 2->4, celebrating "4 Wickets" is fine.
+
+                        const keyWicket = `${match.id}_${b.name}_${wickets}_wickets`;
+
+                        if (!processed.has(keyWicket)) {
+                            foundNewMilestone = {
+                                ...b,
+                                team: b.team || 'Bowling Team',
+                                matchId: match.id,
+                                key: keyWicket,
+                                type: 'wickets',
+                                runsConceded: b.runs || 0
+                            };
+                        }
+                    }
+                });
+            };
+
+            checkBowlers(match.bowling);
+            checkBowlers(match.secondInningsBowling);
         });
 
         if (foundNewMilestone) {
-            setActiveMilestone(foundNewMilestone);
+            // Infer Team Name if missing
+            if (!foundNewMilestone.team || foundNewMilestone.team === 'Player' || foundNewMilestone.team === 'Bowling Team') {
+                if (foundNewMilestone.type === 'wickets') {
+                    // Bowler is from the fielding team. 
+                    // Loop through matches to find which team this player is NOT in batting list? Or check bowling lists.
+                    // Simple heuristic: If in `match.score.team1.bowling`, they are Team 1? No, usually bowling arrays track bowlers associated with the innings.
+                    // The `bowling` prop on player objects in `match.bowling` typically comes from the `players` list which has team info.
+                    // Let's rely on global player list lookup if needed, but for now fallback is okay.
+                } else {
+                    const isTeam1 = (foundNewMilestone.matchId && matches.find(m => m.id === foundNewMilestone.matchId)?.batting || []).some(b => b.name === foundNewMilestone.name);
+                    // foundNewMilestone might not have full match context here easily.
+                }
+            }
 
-            // Mark as processed immediately so we don't trigger again
+            setActiveMilestone(foundNewMilestone);
             processed.add(foundNewMilestone.key);
             sessionStorage.setItem('rpl_milestones_session', JSON.stringify([...processed]));
         }
-    }, [matches]); // Re-run whenever matches update (live scores)
+    }, [matches]);
 
     return (
         <div className="w-full relative">

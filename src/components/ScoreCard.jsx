@@ -41,6 +41,11 @@ const ScoreCard = ({ match, onClose }) => {
                         <h2 className="text-xl font-bold">{match.team1} vs {match.team2}</h2>
                         <div className="flex flex-col">
                             <p className="text-sm opacity-80">{match.status === 'live' ? 'Create Live' : 'Match Details'}</p>
+                            {match.matchType && match.matchType !== 'Group Stage' && (
+                                <span className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-300 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-[0_0_10px_rgba(251,191,36,0.2)] border border-amber-500/30 w-fit mt-1">
+                                    {match.matchType}
+                                </span>
+                            )}
                             <p className="text-xs opacity-70 mt-1 font-mono">
                                 {match.date ? new Date(match.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                             </p>

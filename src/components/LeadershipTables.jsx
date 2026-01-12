@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
-import { Trophy, Medal, Target, Zap, Award, Hexagon, Component } from 'lucide-react';
+import { Trophy, Medal, Target, Zap, Award, Hexagon, Component, Crown, Star } from 'lucide-react';
 
 const LeadershipTables = () => {
     const { players, matches } = useGame();
@@ -88,6 +88,40 @@ const LeadershipTables = () => {
             .sort((a, b) => (b.sixes || 0) - (a.sixes || 0))
             .slice(0, 5);
     }, [players]);
+
+    // Process Most Centuries and Fifties
+    const { topCenturions, topHalfCenturions } = React.useMemo(() => {
+        const centuries = {}; // { name: { count: 0, team: '' } }
+        const fifties = {};
+
+        const processPlayer = (p, team) => {
+            const runs = Number(p.runs) || 0;
+            const name = p.name;
+            const playerTeam = p.team || team || 'Unknown';
+
+            if (runs >= 100) {
+                if (!centuries[name]) centuries[name] = { name, count: 0, team: playerTeam };
+                centuries[name].count += 1;
+                // Note: A century is NOT counted as a fifty here, keeping them distinct.
+            } else if (runs >= 50) {
+                if (!fifties[name]) fifties[name] = { name, count: 0, team: playerTeam };
+                fifties[name].count += 1;
+            }
+        };
+
+        (matches || []).forEach(match => {
+            (match.batting || []).forEach(p => processPlayer(p, match.team1)); // innings1 = team1 batting usually
+            (match.secondInningsBatting || []).forEach(p => processPlayer(p, match.team2));
+        });
+
+        const sortedCenturies = Object.values(centuries)
+            .sort((a, b) => b.count - a.count); // No slice as per user request "No Limit"
+
+        const sortedFifties = Object.values(fifties)
+            .sort((a, b) => b.count - a.count);
+
+        return { topCenturions: sortedCenturies, topHalfCenturions: sortedFifties };
+    }, [matches]);
 
     const RankIcon = ({ rank }) => {
         if (rank === 0) return <Trophy size={16} className="text-yellow-400" />;
@@ -383,6 +417,105 @@ const LeadershipTables = () => {
                                         </td>
                                         <td className="p-3 text-center font-mono font-bold text-rose-400 text-lg">
                                             {player.sixes}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            {/* Most Centuries Leaderboard */}
+            <div className="glass-card p-0 overflow-hidden border border-white/10 flex flex-col h-full animate-fade-in-up" style={{ animationDelay: '0.7s' }}>
+                <div className="bg-gradient-to-r from-cyan-900/40 to-slate-900/40 p-4 border-b border-white/10 flex items-center gap-3">
+                    <div className="bg-cyan-500/20 p-2 rounded-lg">
+                        <Crown size={20} className="text-cyan-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white leading-none">Centurions</h3>
+                        <span className="text-xs text-cyan-300 font-medium uppercase tracking-wider">Most Centuries</span>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-black/20 text-xs uppercase text-gray-400 font-bold tracking-wider">
+                                <th className="p-3 text-center w-12">Rank</th>
+                                <th className="p-3">Player</th>
+                                <th className="p-3 text-center">100s</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {topCenturions.length === 0 ? (
+                                <tr>
+                                    <td colSpan="3" className="p-6 text-center text-gray-500 text-sm">No centuries yet</td>
+                                </tr>
+                            ) : (
+                                topCenturions.map((player, index) => (
+                                    <tr key={index} className={`hover:bg-white/5 transition-colors ${index === 0 ? 'bg-cyan-500/5' : ''}`}>
+                                        <td className="p-3 text-center flex justify-center items-center h-full">
+                                            <div className="w-6 h-6 flex items-center justify-center">
+                                                <RankIcon rank={index} />
+                                            </div>
+                                        </td>
+                                        <td className="p-3">
+                                            <div className="font-bold text-gray-200">{player.name}</div>
+                                            <div className="text-[10px] text-gray-500 uppercase">{player.team}</div>
+                                        </td>
+                                        <td className="p-3 text-center font-mono font-bold text-cyan-400 text-lg">
+                                            {player.count}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Most Fifties Leaderboard */}
+            <div className="glass-card p-0 overflow-hidden border border-white/10 flex flex-col h-full animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
+                <div className="bg-gradient-to-r from-yellow-900/40 to-orange-900/40 p-4 border-b border-white/10 flex items-center gap-3">
+                    <div className="bg-yellow-500/20 p-2 rounded-lg">
+                        <Star size={20} className="text-yellow-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white leading-none">Half-Centurions</h3>
+                        <span className="text-xs text-yellow-300 font-medium uppercase tracking-wider">Most Fifties</span>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-black/20 text-xs uppercase text-gray-400 font-bold tracking-wider">
+                                <th className="p-3 text-center w-12">Rank</th>
+                                <th className="p-3">Player</th>
+                                <th className="p-3 text-center">50s</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {topHalfCenturions.length === 0 ? (
+                                <tr>
+                                    <td colSpan="3" className="p-6 text-center text-gray-500 text-sm">No fifties yet</td>
+                                </tr>
+                            ) : (
+                                topHalfCenturions.map((player, index) => (
+                                    <tr key={index} className={`hover:bg-white/5 transition-colors ${index === 0 ? 'bg-yellow-500/5' : ''}`}>
+                                        <td className="p-3 text-center flex justify-center items-center h-full">
+                                            <div className="w-6 h-6 flex items-center justify-center">
+                                                <RankIcon rank={index} />
+                                            </div>
+                                        </td>
+                                        <td className="p-3">
+                                            <div className="font-bold text-gray-200">{player.name}</div>
+                                            <div className="text-[10px] text-gray-500 uppercase">{player.team}</div>
+                                        </td>
+                                        <td className="p-3 text-center font-mono font-bold text-yellow-400 text-lg">
+                                            {player.count}
                                         </td>
                                     </tr>
                                 ))

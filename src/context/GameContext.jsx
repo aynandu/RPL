@@ -36,6 +36,24 @@ export const GameProvider = ({ children }) => {
         return saved ? JSON.parse(saved) : { name: 'Revenue Premier League', season: 'S2' };
     });
 
+    const [stadiums, setStadiums] = useState(() => {
+        const saved = localStorage.getItem('rpl_stadiums');
+        return saved ? JSON.parse(saved) : ['Indoor Stadium, Pramdom', 'Turf, Pathanamthitta'];
+    });
+
+    const [oversOptions, setOversOptions] = useState(() => {
+        const saved = localStorage.getItem('rpl_overs_options');
+        return saved ? JSON.parse(saved) : ['6 Over', '8 Over', '10 Over'];
+    });
+
+    const [liveStreamUrl, setLiveStreamUrl] = useState(() => {
+        return localStorage.getItem('rpl_livestream') || '';
+    });
+
+    const [liveStreamUrl2, setLiveStreamUrl2] = useState(() => {
+        return localStorage.getItem('rpl_livestream2') || '';
+    });
+
     // Persist changes
     useEffect(() => {
         localStorage.setItem('rpl_matches', JSON.stringify(matches));
@@ -54,12 +72,28 @@ export const GameProvider = ({ children }) => {
     }, [players]);
 
     useEffect(() => {
+        localStorage.setItem('rpl_overs_options', JSON.stringify(oversOptions));
+    }, [oversOptions]);
+
+    useEffect(() => {
+        localStorage.setItem('rpl_livestream', liveStreamUrl);
+    }, [liveStreamUrl]);
+
+    useEffect(() => {
+        localStorage.setItem('rpl_livestream2', liveStreamUrl2);
+    }, [liveStreamUrl2]);
+
+    useEffect(() => {
         localStorage.setItem('rpl_is_admin', isAdmin);
     }, [isAdmin]);
 
     useEffect(() => {
         localStorage.setItem('rpl_title', JSON.stringify(tournamentTitle));
     }, [tournamentTitle]);
+
+    useEffect(() => {
+        localStorage.setItem('rpl_stadiums', JSON.stringify(stadiums));
+    }, [stadiums]);
 
     // Cross-tab Synchronization
     useEffect(() => {
@@ -76,6 +110,14 @@ export const GameProvider = ({ children }) => {
                 setIsAdmin(e.newValue === 'true');
             } else if (e.key === 'rpl_title') {
                 setTournamentTitle(JSON.parse(e.newValue || '{}'));
+            } else if (e.key === 'rpl_stadiums') {
+                setStadiums(JSON.parse(e.newValue || '[]'));
+            } else if (e.key === 'rpl_overs_options') {
+                setOversOptions(JSON.parse(e.newValue || '[]'));
+            } else if (e.key === 'rpl_livestream') {
+                setLiveStreamUrl(e.newValue || '');
+            } else if (e.key === 'rpl_livestream2') {
+                setLiveStreamUrl2(e.newValue || '');
             }
         };
 
@@ -163,6 +205,35 @@ export const GameProvider = ({ children }) => {
         setPlayers(prev => prev.filter(p => p.id !== id));
     };
 
+    const addStadium = (stadium) => {
+        if (!stadiums.includes(stadium)) {
+            setStadiums(prev => [...prev, stadium]);
+        }
+    };
+
+    const deleteStadium = (stadium) => {
+        setStadiums(prev => prev.filter(s => s !== stadium));
+    };
+
+    const addOverOption = (over) => {
+        if (!oversOptions.includes(over)) {
+            setOversOptions(prev => [...prev, over]);
+        }
+    };
+
+    const deleteOverOption = (over) => {
+        setOversOptions(prev => prev.filter(o => o !== over));
+    };
+
+    const resetData = () => {
+        setMatches([]);
+        setPointsTable([]);
+        setPlayers([]);
+        localStorage.setItem('rpl_matches', JSON.stringify([]));
+        localStorage.setItem('rpl_points', JSON.stringify([]));
+        localStorage.setItem('rpl_players', JSON.stringify([]));
+    };
+
     return (
         <GameContext.Provider value={{
             matches,
@@ -183,7 +254,18 @@ export const GameProvider = ({ children }) => {
             batchUpdatePlayers,
             deletePlayer,
             tournamentTitle,
-            updateTournamentTitle: setTournamentTitle
+            updateTournamentTitle: setTournamentTitle,
+            stadiums,
+            addStadium,
+            deleteStadium,
+            oversOptions,
+            addOverOption,
+            deleteOverOption,
+            liveStreamUrl,
+            setLiveStreamUrl,
+            liveStreamUrl2,
+            setLiveStreamUrl2,
+            resetData
         }}>
             {children}
         </GameContext.Provider>

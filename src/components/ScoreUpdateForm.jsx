@@ -4,7 +4,7 @@ import { X, Save, Trash2, UserPlus } from 'lucide-react';
 import SquadSelector from './SquadSelector';
 
 const ScoreUpdateForm = ({ match, onClose }) => {
-    const { updateMatch, allTeams, players, batchUpdatePlayers, pointsTable, updatePointsTable } = useGame(); // Get players from context
+    const { updateMatch, allTeams, players, batchUpdatePlayers, pointsTable, updatePointsTable, stadiums, oversOptions } = useGame(); // Get players from context
     const [formData, setFormData] = useState({ ...match, oversChoosen: match.oversChoosen || '6 Over' });
     const [activeTab, setActiveTab] = useState('innings1'); // 'innings1' or 'innings2'
 
@@ -800,6 +800,21 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                             </select>
                         </div>
                         <div>
+                            <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Match Stage</label>
+                            <select
+                                name="matchType"
+                                value={formData.matchType || 'Group Stage'}
+                                onChange={handleChange}
+                                className="w-full glass-input p-2 rounded-lg text-yellow-300 font-bold"
+                            >
+                                <option value="Group Stage" className="bg-slate-900 text-gray-300">Group Stage</option>
+                                <option value="Quarter Final" className="bg-slate-900 text-gray-300">Quarter Final</option>
+                                <option value="Semi Final - 1" className="bg-slate-900 text-white font-bold">Semi Final - 1</option>
+                                <option value="Semi Final - 2" className="bg-slate-900 text-white font-bold">Semi Final - 2</option>
+                                <option value="Final" className="bg-slate-900 text-yellow-400 font-bold">FINAL</option>
+                            </select>
+                        </div>
+                        <div>
                             <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Date & Time</label>
                             <input
                                 type="datetime-local"
@@ -874,8 +889,10 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg text-gray-300"
                             >
-                                <option value="Indoor Stadium, Pramdom" className="bg-slate-900">Indoor Stadium, Pramdom</option>
-                                <option value="Turf, Pathanamthitta" className="bg-slate-900">Turf, Pathanamthitta</option>
+                                <option value="" className="bg-slate-900 text-gray-400">Select Stadium</option>
+                                {stadiums && stadiums.map((std, idx) => (
+                                    <option key={idx} value={std} className="bg-slate-900 text-white">{std}</option>
+                                ))}
                             </select>
                         </div>
                         <div className="md:col-span-2">
@@ -886,8 +903,9 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg text-gray-300"
                             >
-                                <option value="6 Over" className="bg-slate-900">6 Over</option>
-                                <option value="8 Over" className="bg-slate-900">8 Over</option>
+                                {oversOptions && oversOptions.map((opt, idx) => (
+                                    <option key={idx} value={opt} className="bg-slate-900">{opt}</option>
+                                ))}
                             </select>
                         </div>
                         <div className="md:col-span-2">
