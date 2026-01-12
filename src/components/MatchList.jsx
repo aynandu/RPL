@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
 import { ChevronRight } from 'lucide-react';
+import MilestonePopup from './MilestonePopup';
 
 const MatchCard = ({ match, onClick }) => {
     const isLive = match.status === 'live';
@@ -188,9 +189,92 @@ const MatchCard = ({ match, onClick }) => {
 
 const MatchList = ({ onSelectMatch }) => {
     const { matches } = useGame();
+    const [activeMilestone, setActiveMilestone] = React.useState(null);
+
+    // Milestone Monitoring
+    React.useEffect(() => {
+        // Load processed milestones to prevent duplicates
+        const getProcessedMilestones = () => {
+            const saved = sessionStorage.getItem('rpl_milestones_session'); // Session storage better for "per session" or Local for "permanent"? User said "only one time in a single match". Usually implies per match lifecycle. I'll use localStorage to be safe against reloads during the match.
+            return new Set(saved ? JSON.parse(saved) : []);
+        };
+
+        const processed = getProcessedMilestones();
+        let foundNewMilestone = null;
+
+        matches.forEach(match => {
+            // Check both innings for any player with >= 50 or >= 100 runs
+            const checkPlayers = (players) => {
+                if (!players) return;
+                players.forEach(p => {
+                    const runs = Number(p.runs) || 0;
+
+                    // Check Century (100) - Priority
+                    if (runs >= 100) {
+                        const key100 = `${match.id}_${p.name}_100`;
+                        if (!processed.has(key100)) {
+                            // New Century Milestone!
+                            foundNewMilestone = {
+                                ...p,
+                                team: p.team || (p.name ? 'Player' : 'Unknown'),
+                                matchId: match.id,
+                                key: key100,
+                                type: '100'
+                            };
+                            if (!foundNewMilestone.team || foundNewMilestone.team === 'Player') {
+                                const isTeam1 = (match.batting || []).some(b => b.name === p.name);
+                                foundNewMilestone.team = isTeam1 ? match.team1 : match.team2;
+                            }
+                            return; // Found a high priority milestone, process this one first
+                        }
+                    }
+
+                    // Check Half-Century (50)
+                    if (runs >= 50) {
+                        const key50 = `${match.id}_${p.name}_50`;
+                        if (!processed.has(key50)) {
+                            // New 50 Milestone!
+                            foundNewMilestone = {
+                                ...p,
+                                team: p.team || (p.name ? 'Player' : 'Unknown'),
+                                matchId: match.id,
+                                key: key50,
+                                type: '50'
+                            };
+
+                            if (!foundNewMilestone.team || foundNewMilestone.team === 'Player') {
+                                const isTeam1 = (match.batting || []).some(b => b.name === p.name);
+                                foundNewMilestone.team = isTeam1 ? match.team1 : match.team2;
+                            }
+                        }
+                    }
+                });
+            };
+
+            if (!foundNewMilestone) { // Only check if we haven't found a higher priority one yet
+                checkPlayers(match.batting);
+                if (!foundNewMilestone) checkPlayers(match.secondInningsBatting);
+            }
+        });
+
+        if (foundNewMilestone) {
+            setActiveMilestone(foundNewMilestone);
+
+            // Mark as processed immediately so we don't trigger again
+            processed.add(foundNewMilestone.key);
+            sessionStorage.setItem('rpl_milestones_session', JSON.stringify([...processed]));
+        }
+    }, [matches]); // Re-run whenever matches update (live scores)
 
     return (
-        <div className="w-full">
+        <div className="w-full relative">
+            {activeMilestone && (
+                <MilestonePopup
+                    player={activeMilestone}
+                    type={activeMilestone.type}
+                    onClose={() => setActiveMilestone(null)}
+                />
+            )}
             <h2 className="text-2xl font-black mb-6 text-white flex items-center gap-3">
                 <span className="w-1.5 h-8 bg-gradient-to-b from-blue-500 to-cyan-400 rounded-full"></span>
                 League Matches
