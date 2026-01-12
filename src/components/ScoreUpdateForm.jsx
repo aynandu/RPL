@@ -4,7 +4,7 @@ import { X, Save, Trash2, UserPlus } from 'lucide-react';
 import SquadSelector from './SquadSelector';
 
 const ScoreUpdateForm = ({ match, onClose }) => {
-    const { updateMatch, allTeams, players, batchUpdatePlayers } = useGame(); // Get players from context
+    const { updateMatch, allTeams, players, batchUpdatePlayers, pointsTable, updatePointsTable } = useGame(); // Get players from context
     const [formData, setFormData] = useState({ ...match, oversChoosen: match.oversChoosen || '6 Over' });
     const [activeTab, setActiveTab] = useState('innings1'); // 'innings1' or 'innings2'
 
@@ -519,6 +519,109 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                 finalData.statsProcessed = true;
             }
         }
+
+        // Points Table Automation (Smart Revert-and-Apply)
+        if (pointsTable) {
+            let newTable = pointsTable.map(team => ({
+                ...team,
+                played: Number(team.played) || 0,
+                won: Number(team.won) || 0,
+                lost: Number(team.lost) || 0,
+                tied: Number(team.tied) || 0,
+                points: Number(team.points) || 0
+            }));
+            let tableUpdated = false;
+
+            // 1. REVERT Old Stats (if match was previously processed)
+            if (match.pointsProcessed && match.status === 'completed') {
+                const oldT1Name = match.team1;
+                const oldT2Name = match.team2;
+                const oldT1Runs = Number(match.score.team1.runs) || 0;
+                const oldT2Runs = Number(match.score.team2.runs) || 0;
+
+                const t1Idx = newTable.findIndex(t => t.team === oldT1Name);
+                const t2Idx = newTable.findIndex(t => t.team === oldT2Name);
+
+                if (t1Idx !== -1 && t2Idx !== -1) {
+                    // Revert Played
+                    newTable[t1Idx].played = Math.max(0, newTable[t1Idx].played - 1);
+                    newTable[t2Idx].played = Math.max(0, newTable[t2Idx].played - 1);
+
+                    // Revert Result
+                    if (oldT1Runs > oldT2Runs) {
+                        // Team 1 was Winner: Subtract W/Pts, Team 2 was Loser: Subtract L
+                        newTable[t1Idx].won = Math.max(0, newTable[t1Idx].won - 1);
+                        newTable[t1Idx].points = Math.max(0, newTable[t1Idx].points - 2);
+                        newTable[t2Idx].lost = Math.max(0, newTable[t2Idx].lost - 1);
+                    } else if (oldT2Runs > oldT1Runs) {
+                        // Team 2 was Winner: Subtract W/Pts, Team 1 was Loser: Subtract L
+                        newTable[t2Idx].won = Math.max(0, newTable[t2Idx].won - 1);
+                        newTable[t2Idx].points = Math.max(0, newTable[t2Idx].points - 2);
+                        newTable[t1Idx].lost = Math.max(0, newTable[t1Idx].lost - 1);
+                    } else {
+                        // Tie: Subtract T/Pts for both
+                        newTable[t1Idx].tied = Math.max(0, newTable[t1Idx].tied - 1);
+                        newTable[t1Idx].points = Math.max(0, newTable[t1Idx].points - 1);
+                        newTable[t2Idx].tied = Math.max(0, newTable[t2Idx].tied - 1);
+                        newTable[t2Idx].points = Math.max(0, newTable[t2Idx].points - 1);
+                    }
+                    tableUpdated = true;
+                }
+            }
+
+            // 2. APPLY New Stats (if match is strictly completed)
+            if (finalData.status === 'completed') {
+                const t1Name = finalData.team1;
+                const t2Name = finalData.team2;
+                const t1Runs = Number(finalData.score.team1.runs) || 0;
+                const t2Runs = Number(finalData.score.team2.runs) || 0;
+
+                const t1Idx = newTable.findIndex(t => t.team === t1Name);
+                const t2Idx = newTable.findIndex(t => t.team === t2Name);
+
+                if (t1Idx !== -1 && t2Idx !== -1) {
+                    // Scenario 1 & 2 & 3: Add Played
+                    newTable[t1Idx].played += 1;
+                    newTable[t2Idx].played += 1;
+
+                    if (t1Runs > t2Runs) {
+                        // Team 1 Wins: Add W/Pts. Team 2 Loses: Add L.
+                        newTable[t1Idx].won += 1;
+                        newTable[t1Idx].points += 2;
+                        newTable[t2Idx].lost += 1;
+                        // (User Scenario: "Lossing become winner -> -1 L, +1 W". Revert -1 L + Apply +1 W achieves this)
+                    } else if (t2Runs > t1Runs) {
+                        // Team 2 Wins: Add W/Pts. Team 1 Loses: Add L.
+                        newTable[t2Idx].won += 1;
+                        newTable[t2Idx].points += 2;
+                        newTable[t1Idx].lost += 1;
+                    } else {
+                        // Tie: Add T/Pts to both.
+                        newTable[t1Idx].tied += 1;
+                        newTable[t1Idx].points += 1;
+                        newTable[t2Idx].tied += 1;
+                        newTable[t2Idx].points += 1;
+                    }
+                    finalData.pointsProcessed = true;
+                    tableUpdated = true;
+                } else {
+                    alert("Error: One or both teams not found in Points Table. Points not updated.");
+                }
+            } else {
+                // If status is not completed, ensure flag is false (e.g. reverted to Live)
+                finalData.pointsProcessed = false;
+            }
+
+            if (tableUpdated) {
+                updatePointsTable(newTable);
+                if (finalData.status === 'completed') {
+                    alert("Points Table updated (Revert/Apply) successfully!");
+                } else {
+                    alert("Match incomplete: Points reverted from table.");
+                }
+            }
+        }
+
 
         updateMatch(match.id, finalData);
         alert('Match updates saved successfully!');
