@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
-import { Trophy, Medal, Target, Zap } from 'lucide-react';
+import { Trophy, Medal, Target, Zap, Award, Hexagon, Component } from 'lucide-react';
 
 const LeadershipTables = () => {
     const { players, matches } = useGame();
@@ -67,6 +67,27 @@ const LeadershipTables = () => {
             .sort((a, b) => b.runs - a.runs)
             .slice(0, 5);
     }, [matches]);
+
+    const topHighestScorers = React.useMemo(() => {
+        return [...(players || [])]
+            .filter(p => (p.highestScore || 0) > 0)
+            .sort((a, b) => (b.highestScore || 0) - (a.highestScore || 0))
+            .slice(0, 5);
+    }, [players]);
+
+    const topFourHitters = React.useMemo(() => {
+        return [...(players || [])]
+            .filter(p => (p.fours || 0) > 0)
+            .sort((a, b) => (b.fours || 0) - (a.fours || 0))
+            .slice(0, 5);
+    }, [players]);
+
+    const topSixHitters = React.useMemo(() => {
+        return [...(players || [])]
+            .filter(p => (p.sixes || 0) > 0)
+            .sort((a, b) => (b.sixes || 0) - (a.sixes || 0))
+            .slice(0, 5);
+    }, [players]);
 
     const RankIcon = ({ rank }) => {
         if (rank === 0) return <Trophy size={16} className="text-yellow-400" />;
@@ -223,7 +244,154 @@ const LeadershipTables = () => {
                     </table>
                 </div>
             </div>
-        </div>
+            {/* Highest Score Leaderboard */}
+            <div className="glass-card p-0 overflow-hidden border border-white/10 flex flex-col h-full animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                <div className="bg-gradient-to-r from-emerald-900/40 to-teal-900/40 p-4 border-b border-white/10 flex items-center gap-3">
+                    <div className="bg-emerald-500/20 p-2 rounded-lg">
+                        <Award size={20} className="text-emerald-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white leading-none">Highest Stats</h3>
+                        <span className="text-xs text-emerald-300 font-medium uppercase tracking-wider">Highest Individual Score</span>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-black/20 text-xs uppercase text-gray-400 font-bold tracking-wider">
+                                <th className="p-3 text-center w-12">Rank</th>
+                                <th className="p-3">Player</th>
+                                <th className="p-3 text-center">HS</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {topHighestScorers.length === 0 ? (
+                                <tr>
+                                    <td colSpan="3" className="p-6 text-center text-gray-500 text-sm">No records yet</td>
+                                </tr>
+                            ) : (
+                                topHighestScorers.map((player, index) => (
+                                    <tr key={index} className={`hover:bg-white/5 transition-colors ${index === 0 ? 'bg-emerald-500/5' : ''}`}>
+                                        <td className="p-3 text-center flex justify-center items-center h-full">
+                                            <div className="w-6 h-6 flex items-center justify-center">
+                                                <RankIcon rank={index} />
+                                            </div>
+                                        </td>
+                                        <td className="p-3">
+                                            <div className="font-bold text-gray-200">{player.name}</div>
+                                            <div className="text-[10px] text-gray-500 uppercase">{player.team}</div>
+                                        </td>
+                                        <td className="p-3 text-center font-mono font-bold text-emerald-400 text-lg">
+                                            {player.highestScore}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            {/* Most 4s Leaderboard */}
+            <div className="glass-card p-0 overflow-hidden border border-white/10 flex flex-col h-full animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+                <div className="bg-gradient-to-r from-blue-900/40 to-cyan-900/40 p-4 border-b border-white/10 flex items-center gap-3">
+                    <div className="bg-blue-500/20 p-2 rounded-lg">
+                        <Hexagon size={20} className="text-blue-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white leading-none">Boundary Kings</h3>
+                        <span className="text-xs text-blue-300 font-medium uppercase tracking-wider">Most 4s</span>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-black/20 text-xs uppercase text-gray-400 font-bold tracking-wider">
+                                <th className="p-3 text-center w-12">Rank</th>
+                                <th className="p-3">Player</th>
+                                <th className="p-3 text-center">4s</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {topFourHitters.length === 0 ? (
+                                <tr>
+                                    <td colSpan="3" className="p-6 text-center text-gray-500 text-sm">No records yet</td>
+                                </tr>
+                            ) : (
+                                topFourHitters.map((player, index) => (
+                                    <tr key={index} className={`hover:bg-white/5 transition-colors ${index === 0 ? 'bg-blue-500/5' : ''}`}>
+                                        <td className="p-3 text-center flex justify-center items-center h-full">
+                                            <div className="w-6 h-6 flex items-center justify-center">
+                                                <RankIcon rank={index} />
+                                            </div>
+                                        </td>
+                                        <td className="p-3">
+                                            <div className="font-bold text-gray-200">{player.name}</div>
+                                            <div className="text-[10px] text-gray-500 uppercase">{player.team}</div>
+                                        </td>
+                                        <td className="p-3 text-center font-mono font-bold text-blue-400 text-lg">
+                                            {player.fours}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Most 6s Leaderboard */}
+            <div className="glass-card p-0 overflow-hidden border border-white/10 flex flex-col h-full animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+                <div className="bg-gradient-to-r from-rose-900/40 to-pink-900/40 p-4 border-b border-white/10 flex items-center gap-3">
+                    <div className="bg-rose-500/20 p-2 rounded-lg">
+                        <Component size={20} className="text-rose-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white leading-none">Maximums</h3>
+                        <span className="text-xs text-rose-300 font-medium uppercase tracking-wider">Most 6s</span>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-black/20 text-xs uppercase text-gray-400 font-bold tracking-wider">
+                                <th className="p-3 text-center w-12">Rank</th>
+                                <th className="p-3">Player</th>
+                                <th className="p-3 text-center">6s</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {topSixHitters.length === 0 ? (
+                                <tr>
+                                    <td colSpan="3" className="p-6 text-center text-gray-500 text-sm">No records yet</td>
+                                </tr>
+                            ) : (
+                                topSixHitters.map((player, index) => (
+                                    <tr key={index} className={`hover:bg-white/5 transition-colors ${index === 0 ? 'bg-rose-500/5' : ''}`}>
+                                        <td className="p-3 text-center flex justify-center items-center h-full">
+                                            <div className="w-6 h-6 flex items-center justify-center">
+                                                <RankIcon rank={index} />
+                                            </div>
+                                        </td>
+                                        <td className="p-3">
+                                            <div className="font-bold text-gray-200">{player.name}</div>
+                                            <div className="text-[10px] text-gray-500 uppercase">{player.team}</div>
+                                        </td>
+                                        <td className="p-3 text-center font-mono font-bold text-rose-400 text-lg">
+                                            {player.sixes}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div >
     );
 };
 
