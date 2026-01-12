@@ -24,6 +24,7 @@ const PlayerManager = ({ teamName, onClose, readOnly = false }) => {
         maidens: 0,
         runsConceded: 0,
         wickets: 0,
+        highestScore: 0,
         isCaptain: false,
         isViceCaptain: false
     };
@@ -169,6 +170,7 @@ const PlayerManager = ({ teamName, onClose, readOnly = false }) => {
                                                         {player.isViceCaptain && <span className="bg-blue-500/20 text-blue-400 text-[10px] px-1.5 py-0.5 rounded border border-blue-500/30">VC</span>}
                                                     </h3>
                                                     <span className="text-xs uppercase font-bold text-gray-500">Matches: <span className="text-gray-300">{player.matches}</span></span>
+                                                    {showBatting && <span className="text-xs uppercase font-bold text-gray-500 ml-3">Highest: <span className="text-yellow-400">{player.highestScore || 0}</span></span>}
                                                 </div>
                                                 <div className="flex gap-1">
                                                     {showBatting && <span className="bg-blue-500/20 text-blue-300 text-[10px] uppercase font-bold px-2 py-1 rounded">Bat</span>}
@@ -360,6 +362,10 @@ const PlayerManager = ({ teamName, onClose, readOnly = false }) => {
                                                         <label className="text-xs uppercase font-bold text-gray-500 mb-1 block">100s</label>
                                                         <input type="number" name="hundreds" value={formData.hundreds} onChange={handleChange} className="w-full glass-input p-2.5 rounded-lg text-center" />
                                                     </div>
+                                                    <div>
+                                                        <label className="text-xs uppercase font-bold text-gray-500 mb-1 block">Highest</label>
+                                                        <input type="number" name="highestScore" value={formData.highestScore || 0} onChange={handleChange} className="w-full glass-input p-2.5 rounded-lg text-center font-bold text-yellow-400" />
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -424,7 +430,8 @@ const PlayerManager = ({ teamName, onClose, readOnly = false }) => {
                                             <th className="p-4 border-b border-white/5 text-center text-gray-500">4s</th>
                                             <th className="p-4 border-b border-white/5 text-center text-gray-500">6s</th>
                                             <th className="p-4 border-b border-white/5 text-center text-gray-500">50</th>
-                                            <th className="p-4 border-b border-white/5 text-center text-gray-500 border-r border-white/5">100</th>
+                                            <th className="p-4 border-b border-white/5 text-center text-gray-500">100</th>
+                                            <th className="p-4 border-b border-white/5 text-center text-yellow-500 border-r border-white/5">HS</th>
 
                                             {/* Bowling Headers */}
                                             <th className="p-4 border-b border-white/5 text-center text-green-300">Ov</th>
@@ -461,7 +468,8 @@ const PlayerManager = ({ teamName, onClose, readOnly = false }) => {
                                                     <td className="p-4 text-center text-gray-500">{player.fours}</td>
                                                     <td className="p-4 text-center text-gray-500">{player.sixes}</td>
                                                     <td className="p-4 text-center text-gray-500">{player.fifties}</td>
-                                                    <td className="p-4 text-center text-gray-500 border-r border-white/5">{player.hundreds}</td>
+                                                    <td className="p-4 text-center text-gray-500">{player.hundreds}</td>
+                                                    <td className="p-4 text-center font-bold text-yellow-500 border-r border-white/5">{player.highestScore || 0}</td>
 
                                                     {/* Bowling Stats */}
                                                     <td className="p-4 text-center text-gray-300">{player.overs || 0}</td>

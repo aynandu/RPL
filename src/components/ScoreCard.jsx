@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useGame } from '../context/GameContext';
 import { X } from 'lucide-react';
 
 const ScoreCard = ({ match, onClose }) => {
+    const { players } = useGame();
     const [activeTab, setActiveTab] = useState('innings1');
 
     if (!match) return null;
@@ -230,6 +232,7 @@ const ScoreCard = ({ match, onClose }) => {
                                         <th className="p-3 text-right">4s</th>
                                         <th className="p-3 text-right">6s</th>
                                         <th className="p-3 text-right">SR</th>
+                                        <th className="p-3 text-right text-yellow-500/70">HS</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-700">
@@ -255,16 +258,22 @@ const ScoreCard = ({ match, onClose }) => {
                                                 <td className="p-3 text-right">{batter.fours || 0}</td>
                                                 <td className="p-3 text-right">{batter.sixes || 0}</td>
                                                 <td className="p-3 text-right">{(batter.balls > 0 ? ((batter.runs / batter.balls) * 100).toFixed(1) : '0.0')}</td>
+                                                <td className="p-3 text-right font-mono text-yellow-500/80">
+                                                    {(() => {
+                                                        const p = players?.find(p => p.name === batter.name && p.team === battingTeam);
+                                                        return p ? (p.highestScore || '-') : '-';
+                                                    })()}
+                                                </td>
                                             </tr>
                                         ))}
                                     {(!currentBatting || (Array.isArray(currentBatting) && currentBatting.length === 0)) && (
                                         <tr>
-                                            <td colSpan="6" className="p-4 text-center text-gray-500 italic">No batting data available yet.</td>
+                                            <td colSpan="7" className="p-4 text-center text-gray-500 italic">No batting data available yet.</td>
                                         </tr>
                                     )}
                                     {/* Extras Row */}
                                     <tr className="bg-slate-700/50 font-bold border-t border-slate-600">
-                                        <td colSpan="4" className="p-3 text-right text-gray-300">Extras</td>
+                                        <td colSpan="5" className="p-3 text-right text-gray-300">Extras</td>
                                         <td colSpan="2" className="p-3 text-left text-yellow-500">
                                             {activeTab === 'innings1' ? (match.score.team1.extras || 0) : (match.score.team2.extras || 0)}
                                         </td>

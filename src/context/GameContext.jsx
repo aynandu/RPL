@@ -151,7 +151,8 @@ export const GameProvider = ({ children }) => {
                     overs: (Number(p.overs) || 0) + (Number(s.overs) || 0),
                     maidens: (Number(p.maidens) || 0) + (Number(s.maidens) || 0),
                     runsConceded: (Number(p.runsConceded) || 0) + (Number(s.runsConceded) || 0),
-                    wickets: (Number(p.wickets) || 0) + (Number(s.wickets) || 0)
+                    wickets: (Number(p.wickets) || 0) + (Number(s.wickets) || 0),
+                    highestScore: Math.max(Number(p.highestScore) || 0, Number(s.highestScore) || 0)
                 };
             }
             return p;

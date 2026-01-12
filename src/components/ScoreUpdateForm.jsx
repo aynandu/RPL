@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import { X, Save, Trash2, UserPlus } from 'lucide-react';
 import SquadSelector from './SquadSelector';
@@ -19,6 +19,14 @@ const ScoreUpdateForm = ({ match, onClose }) => {
     // Over-specific Bowler Selector State
     const [showOverSelector, setShowOverSelector] = useState(false);
     const [activeOverIndex, setActiveOverIndex] = useState(null);
+
+    // Toggle for Enabling Updates on Completed Matches
+    const [updatesEnabled, setUpdatesEnabled] = useState(match?.status !== 'completed');
+
+    // Sync updatesEnabled with match status changes
+    useEffect(() => {
+        setUpdatesEnabled(match?.status !== 'completed');
+    }, [match?.status]);
 
     useEffect(() => {
         setFormData({ ...match, oversChoosen: match.oversChoosen || '6 Over' });
@@ -471,6 +479,12 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                     pStats.sixes += Number(entry.sixes) || 0;
                     if (r >= 50 && r < 100) pStats.fifties += 1;
                     if (r >= 100) pStats.hundreds += 1;
+
+                    // Highest Score Check
+                    const currentHighest = Number(player.highestScore) || 0;
+                    if (r > currentHighest) {
+                        pStats.highestScore = r;
+                    }
                 } else if (type === 'bowling') {
                     pStats.overs += Number(entry.overs) || 0;
                     pStats.maidens += Number(entry.maidens) || 0;
@@ -1243,8 +1257,30 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                     </div>
                 </form >
 
-                <div className="p-4 border-t border-white/10 flex justify-end bg-white/5 backdrop-blur-md">
-                    <button type="submit" onClick={handleSubmit} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 shadow-lg hover:shadow-blue-500/40 transition-all hover:scale-105">
+                <div className="p-4 border-t border-white/10 flex justify-end items-center gap-4 bg-white/5 backdrop-blur-md">
+                    {/* Enable Updates Toggle for Completed Matches */}
+                    {formData.status === 'completed' && (
+                        <div className="flex items-center gap-3 bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/10">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Enable Updates</span>
+                            <button
+                                type="button"
+                                onClick={() => setUpdatesEnabled(!updatesEnabled)}
+                                className={`w-10 h-5 rounded-full p-0.5 transition-colors relative ${updatesEnabled ? 'bg-green-500' : 'bg-slate-600'}`}
+                            >
+                                <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${updatesEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </button>
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        onClick={handleSubmit}
+                        disabled={formData.status === 'completed' && !updatesEnabled}
+                        className={`px-8 py-3 rounded-full font-bold flex items-center gap-2 shadow-lg transition-all ${formData.status === 'completed' && !updatesEnabled
+                            ? 'bg-slate-700 text-gray-500 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-blue-500/40 hover:scale-105'
+                            }`}
+                    >
                         <Save size={20} /> Save Updates
                     </button>
                 </div>
