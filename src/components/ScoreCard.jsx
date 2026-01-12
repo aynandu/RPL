@@ -329,10 +329,27 @@ const ScoreCard = ({ match, onClose }) => {
                                 {(activeTab === 'innings1' ? match.innings1Overs : match.innings2Overs).map((overData, idx) => (
                                     <div key={idx} className="bg-slate-800 rounded-lg border border-slate-700 p-3">
                                         <div className="flex justify-between items-center mb-2 border-b border-slate-700 pb-1">
-                                            <span className="text-xs font-bold text-gray-400 uppercase">Over {overData.over}</span>
-                                            <span className="text-xs font-mono font-bold text-blue-400">
-                                                {overData.balls.reduce((sum, ball) => sum + (Number(ball) || 0), 0)} runs
-                                            </span>
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-bold text-gray-400 uppercase">Over {overData.over}</span>
+                                                {overData.savedStats && overData.savedStats.bowlerName && (
+                                                    <span className="text-[10px] text-gray-500 font-medium truncate max-w-[80px]" title={overData.savedStats.bowlerName}>
+                                                        {overData.savedStats.bowlerName}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-xs font-mono font-bold text-blue-400">
+                                                    {overData.balls.reduce((sum, ball) => sum + (Number(ball) || 0), 0)} runs
+                                                </span>
+                                                {(overData.savedStats?.wickets > 0 || overData.balls.filter(b => b === 'W' || b === 'w').length > 0) && (
+                                                    <span className="text-[10px] font-bold text-red-400">
+                                                        {overData.savedStats?.wickets || overData.balls.filter(b => b === 'W' || b === 'w').length} Wkts
+                                                    </span>
+                                                )}
+
+
+
+                                            </div>
                                         </div>
                                         <div className="flex flex-wrap gap-1">
                                             {overData.balls.map((ball, bIdx) => (
@@ -349,6 +366,40 @@ const ScoreCard = ({ match, onClose }) => {
                                                 </div>
                                             ))}
                                         </div>
+
+
+                                        {(() => {
+                                            let topName = overData.topScorerName;
+                                            let topRuns = overData.topScorerRuns || 0;
+
+                                            // Attempt auto-calculation if manual override is missing
+                                            if (!topName && overData.ballAssignments) {
+                                                const scores = {};
+                                                Object.values(overData.ballAssignments).forEach(assignment => {
+                                                    if (assignment.batter) {
+                                                        scores[assignment.batter] = (scores[assignment.batter] || 0) + (Number(assignment.value) || 0);
+                                                    }
+                                                });
+
+                                                let maxRuns = -1;
+                                                Object.entries(scores).forEach(([name, runs]) => {
+                                                    if (runs > maxRuns) {
+                                                        maxRuns = runs;
+                                                        topName = name;
+                                                        topRuns = runs;
+                                                    }
+                                                });
+                                            }
+
+                                            return topName ? (
+                                                <div className="mt-2 pt-2 border-t border-slate-700/50 text-center">
+                                                    <span className="text-[9px] text-gray-500 uppercase font-bold block mb-0.5">Most Runs</span>
+                                                    <span className="text-xs text-yellow-500 font-bold">
+                                                        {topName} <span className="text-white/60 text-[10px] font-normal">({topRuns})</span>
+                                                    </span>
+                                                </div>
+                                            ) : null;
+                                        })()}
                                     </div>
                                 ))}
                             </div>
@@ -360,7 +411,7 @@ const ScoreCard = ({ match, onClose }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -5,6 +5,7 @@ import MatchList from '../components/MatchList';
 import ScoreCard from '../components/ScoreCard';
 import PointsTable from '../components/PointsTable';
 import AllTeams from '../components/AllTeams';
+import LeadershipTables from '../components/LeadershipTables';
 import { useGame } from '../context/GameContext';
 
 const Home = () => {
@@ -32,6 +33,7 @@ const Home = () => {
                     <div className="w-full md:w-[35%]">
                         <PointsTable />
                         <AllTeams />
+                        <LeadershipTables />
                     </div>
                 </div>
             </div>

@@ -1151,6 +1151,39 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                         </div>
                                     </div>
 
+                                    {/* Top Scorer Input */}
+                                    <div className="flex items-center gap-1 mb-2 bg-white/5 p-1.5 rounded">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase whitespace-nowrap">Best Bat:</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Name"
+                                            value={overData.topScorerName || ""}
+                                            onChange={(e) => {
+                                                const key = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
+                                                setFormData(prev => {
+                                                    const newOvers = [...(prev[key] || [])];
+                                                    newOvers[overIdx] = { ...newOvers[overIdx], topScorerName: e.target.value };
+                                                    return { ...prev, [key]: newOvers };
+                                                });
+                                            }}
+                                            className="w-full glass-input p-1 rounded text-xs text-blue-300"
+                                        />
+                                        <input
+                                            type="number"
+                                            placeholder="R"
+                                            value={overData.topScorerRuns || ""}
+                                            onChange={(e) => {
+                                                const key = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
+                                                setFormData(prev => {
+                                                    const newOvers = [...(prev[key] || [])];
+                                                    newOvers[overIdx] = { ...newOvers[overIdx], topScorerRuns: e.target.value };
+                                                    return { ...prev, [key]: newOvers };
+                                                });
+                                            }}
+                                            className="w-12 glass-input p-1 rounded text-center text-xs text-yellow-400"
+                                        />
+                                    </div>
+
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
                                             type="button"
@@ -1191,7 +1224,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                     </div>
 
                                     {/* Save Button for Over */}
-                                    <button
+                                    < button
                                         type="button"
                                         disabled={!overData.bowler || overData.balls.some(b => b === "")}
                                         onClick={() => handleSaveOver(overIdx)}
@@ -1208,134 +1241,144 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                             ))}
                         </div>
                     </div>
-                </form>
+                </form >
 
                 <div className="p-4 border-t border-white/10 flex justify-end bg-white/5 backdrop-blur-md">
                     <button type="submit" onClick={handleSubmit} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 shadow-lg hover:shadow-blue-500/40 transition-all hover:scale-105">
                         <Save size={20} /> Save Updates
                     </button>
                 </div>
-            </div>
+            </div >
 
             {/* Modal for Selecting Batter for Ball Assignment */}
-            {showBallBatterSelector && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-fade-in">
-                    <div className="bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl relative border border-slate-700 p-6">
-                        <h3 className="text-xl font-bold text-center mb-6 text-white">Who scored {pendingBallUpdate?.value} runs?</h3>
-                        <div className="grid grid-cols-1 gap-3">
-                            {/* Show Not Out Batters */}
-                            {(() => {
-                                const battingKey = activeTab === 'innings1' ? 'batting' : 'secondInningsBatting';
-                                const activeBatters = (formData[battingKey] || []).filter(p => !p.dismissalType || p.dismissalType === 'notOut');
+            {
+                showBallBatterSelector && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-fade-in">
+                        <div className="bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl relative border border-slate-700 p-6">
+                            <h3 className="text-xl font-bold text-center mb-6 text-white">Who scored {pendingBallUpdate?.value} runs?</h3>
+                            <div className="grid grid-cols-1 gap-3">
+                                {/* Show Not Out Batters */}
+                                {(() => {
+                                    const battingKey = activeTab === 'innings1' ? 'batting' : 'secondInningsBatting';
+                                    const activeBatters = (formData[battingKey] || []).filter(p => !p.dismissalType || p.dismissalType === 'notOut');
 
-                                if (activeBatters.length === 0) return <div className="text-gray-500 text-center italic">No active batters found.</div>;
+                                    if (activeBatters.length === 0) return <div className="text-gray-500 text-center italic">No active batters found.</div>;
 
-                                return activeBatters.map((batter, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => handleBallBatterSelect(batter.name)}
-                                        className="bg-slate-800 hover:bg-slate-700 text-white p-4 rounded-xl font-bold text-lg transition-transform hover:scale-105 border border-slate-700 flex justify-between items-center group"
-                                    >
-                                        <span>{batter.name}</span>
-                                        <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded group-hover:bg-blue-500/30">Select</span>
-                                    </button>
-                                ));
-                            })()}
+                                    return activeBatters.map((batter, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleBallBatterSelect(batter.name)}
+                                            className="bg-slate-800 hover:bg-slate-700 text-white p-4 rounded-xl font-bold text-lg transition-transform hover:scale-105 border border-slate-700 flex justify-between items-center group"
+                                        >
+                                            <span>{batter.name}</span>
+                                            <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded group-hover:bg-blue-500/30">Select</span>
+                                        </button>
+                                    ));
+                                })()}
+                            </div>
+                            <button
+                                onClick={() => { setShowBallBatterSelector(false); setPendingBallUpdate(null); }}
+                                className="w-full mt-6 py-3 text-sm text-gray-400 hover:text-white transition-colors"
+                            >
+                                Cancel
+                            </button>
                         </div>
-                        <button
-                            onClick={() => { setShowBallBatterSelector(false); setPendingBallUpdate(null); }}
-                            className="w-full mt-6 py-3 text-sm text-gray-400 hover:text-white transition-colors"
-                        >
-                            Cancel
-                        </button>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Modal for Selecting Opposition Player (Dismissals) */}
-            {showOppositionSelector && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-fade-in">
-                    <div className="bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl relative border border-slate-700 p-6 max-h-[80vh] flex flex-col">
-                        <h3 className="text-xl font-bold text-center mb-6 text-white">Select Opposition Player</h3>
-                        <div className="grid grid-cols-1 gap-2 overflow-y-auto custom-scrollbar flex-1">
-                            {(() => {
-                                const oppositionTeam = activeTab === 'innings1' ? formData.team2 : formData.team1;
-                                // Try to find the squad from allTeams context first
-                                const teamData = allTeams.find(t => t.name === oppositionTeam);
+            {
+                showOppositionSelector && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-fade-in">
+                        <div className="bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl relative border border-slate-700 p-6 max-h-[80vh] flex flex-col">
+                            <h3 className="text-xl font-bold text-center mb-6 text-white">Select Opposition Player</h3>
+                            <div className="grid grid-cols-1 gap-2 overflow-y-auto custom-scrollbar flex-1">
+                                {(() => {
+                                    const oppositionTeam = activeTab === 'innings1' ? formData.team2 : formData.team1;
+                                    // Try to find the squad from allTeams context first
+                                    const teamData = allTeams.find(t => t.name === oppositionTeam);
 
-                                // Fallback: If we can't find teamData, maybe use bowling list if populated?
-                                // But bowling list only has *current* bowlers. We need full squad.
-                                // Best bet: use players from context filtering by team name.
+                                    // Fallback: If we can't find teamData, maybe use bowling list if populated?
+                                    // But bowling list only has *current* bowlers. We need full squad.
+                                    // Best bet: use players from context filtering by team name.
 
-                                let oppositionPlayers = [];
-                                if (teamData && teamData.players) {
-                                    oppositionPlayers = teamData.players;
-                                } else if (players) {
-                                    // Fallback to global players list
-                                    oppositionPlayers = players.filter(p => p.team === oppositionTeam);
-                                }
+                                    let oppositionPlayers = [];
+                                    if (teamData && teamData.players) {
+                                        oppositionPlayers = teamData.players;
+                                    } else if (players) {
+                                        // Fallback to global players list
+                                        oppositionPlayers = players.filter(p => p.team === oppositionTeam);
+                                    }
 
-                                if (oppositionPlayers.length === 0) return <div className="text-gray-500 text-center italic">No players found for {oppositionTeam}.</div>;
+                                    if (oppositionPlayers.length === 0) return <div className="text-gray-500 text-center italic">No players found for {oppositionTeam}.</div>;
 
-                                return oppositionPlayers.map((player, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => handleOppositionPlayerSelect(player.name)}
-                                        className="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold text-sm transition-transform hover:scale-105 border border-slate-700 flex justify-between items-center group text-left"
-                                    >
-                                        <span>{player.name}</span>
-                                        <span className="text-[10px] bg-red-500/20 text-red-300 px-2 py-1 rounded group-hover:bg-red-500/30">Select</span>
-                                    </button>
-                                ));
-                            })()}
+                                    return oppositionPlayers.map((player, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleOppositionPlayerSelect(player.name)}
+                                            className="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold text-sm transition-transform hover:scale-105 border border-slate-700 flex justify-between items-center group text-left"
+                                        >
+                                            <span>{player.name}</span>
+                                            <span className="text-[10px] bg-red-500/20 text-red-300 px-2 py-1 rounded group-hover:bg-red-500/30">Select</span>
+                                        </button>
+                                    ));
+                                })()}
+                            </div>
+                            <button
+                                onClick={() => { setShowOppositionSelector(false); setPendingOppositionUpdate(null); }}
+                                className="w-full mt-6 py-3 text-sm text-gray-400 hover:text-white transition-colors border-t border-white/5"
+                            >
+                                Cancel
+                            </button>
                         </div>
-                        <button
-                            onClick={() => { setShowOppositionSelector(false); setPendingOppositionUpdate(null); }}
-                            className="w-full mt-6 py-3 text-sm text-gray-400 hover:text-white transition-colors border-t border-white/5"
-                        >
-                            Cancel
-                        </button>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Squad Selector Modal for Batting XI */}
-            {showSquadSelector && (
-                <SquadSelector
-                    key={selectorTeam === 'team1' ? formData.team1 : formData.team2}
-                    teamName={selectorTeam === 'team1' ? formData.team1 : formData.team2}
-                    availablePlayers={players || []}
-                    onSave={handleSquadSave}
-                    onCancel={() => { setShowSquadSelector(false); setSelectorTeam(null); }}
-                />
-            )}
+            {
+                showSquadSelector && (
+                    <SquadSelector
+                        key={selectorTeam === 'team1' ? formData.team1 : formData.team2}
+                        teamName={selectorTeam === 'team1' ? formData.team1 : formData.team2}
+                        availablePlayers={players || []}
+                        onSave={handleSquadSave}
+                        onCancel={() => { setShowSquadSelector(false); setSelectorTeam(null); }}
+                    />
+                )
+            }
 
             {/* Squad Selector Modal for Adding Bowler */}
-            {showBowlerSelector && (
-                <SquadSelector
-                    key={'bowler-list-' + bowlingTeam}
-                    teamName={bowlingTeam}
-                    availablePlayers={players || []}
-                    onSave={handleBowlerSelect}
-                    onCancel={() => { setShowBowlerSelector(false); setBowlingTeam(null); }}
-                    maxSelection={1}
-                    title="Select New Bowler"
-                />
-            )}
+            {
+                showBowlerSelector && (
+                    <SquadSelector
+                        key={'bowler-list-' + bowlingTeam}
+                        teamName={bowlingTeam}
+                        availablePlayers={players || []}
+                        onSave={handleBowlerSelect}
+                        onCancel={() => { setShowBowlerSelector(false); setBowlingTeam(null); }}
+                        maxSelection={1}
+                        title="Select New Bowler"
+                    />
+                )
+            }
 
             {/* Squad Selector for Over-specific Bowler */}
-            {showOverSelector && (
-                <SquadSelector
-                    key={'over-bowler-' + activeOverIndex}
-                    teamName={bowlingTeam}
-                    availablePlayers={players || []}
-                    onSave={handleOverBowlerSelect}
-                    onCancel={() => { setShowOverSelector(false); setBowlingTeam(null); setActiveOverIndex(null); }}
-                    maxSelection={1}
-                    title={`Select Bowler for Over ${activeOverIndex + 1}`}
-                />
-            )}
-        </div>
+            {
+                showOverSelector && (
+                    <SquadSelector
+                        key={'over-bowler-' + activeOverIndex}
+                        teamName={bowlingTeam}
+                        availablePlayers={players || []}
+                        onSave={handleOverBowlerSelect}
+                        onCancel={() => { setShowOverSelector(false); setBowlingTeam(null); setActiveOverIndex(null); }}
+                        maxSelection={1}
+                        title={`Select Bowler for Over ${activeOverIndex + 1}`}
+                    />
+                )
+            }
+        </div >
     );
 };
 
