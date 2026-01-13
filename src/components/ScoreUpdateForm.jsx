@@ -27,6 +27,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
 
     // Derived state for enabling/disabling form inputs
     const isFormEditable = formData.status === 'live' || (formData.status === 'completed' && updatesEnabled);
+    const isMetadataEditable = formData.status === 'upcoming' || isFormEditable;
 
     // Sync updatesEnabled with match status changes
     useEffect(() => {
@@ -809,7 +810,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.matchType || 'Group Stage'}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg text-yellow-300 font-bold"
-                                disabled={!isFormEditable}
+                                disabled={!isMetadataEditable}
                             >
                                 <option value="Group Stage" className="bg-slate-900 text-gray-300">Group Stage</option>
                                 <option value="Quarter Final" className="bg-slate-900 text-white font-bold">Quarter Final</option>
@@ -826,7 +827,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.date ? new Date(formData.date).toISOString().slice(0, 16) : ''}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg"
-                                disabled={!isFormEditable}
+                                disabled={!isMetadataEditable}
                             />
                         </div>
                         <div className="md:col-span-1">
@@ -836,7 +837,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.team1}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg font-bold text-blue-300"
-                                disabled={!isFormEditable}
+                                disabled={!isMetadataEditable}
                             >
                                 <option value="" className="bg-slate-900 text-gray-400">Select Team</option>
                                 {allTeams && allTeams.map((team, idx) => (
@@ -851,7 +852,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.team2}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg font-bold text-purple-300"
-                                disabled={!isFormEditable}
+                                disabled={!isMetadataEditable}
                             >
                                 <option value="" className="bg-slate-900 text-gray-400">Select Team</option>
                                 {allTeams && allTeams.map((team, idx) => (
@@ -896,7 +897,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.stadium || 'Indoor Stadium, Pramdom'}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg text-gray-300"
-                                disabled={!isFormEditable}
+                                disabled={!isMetadataEditable}
                             >
                                 <option value="" className="bg-slate-900 text-gray-400">Select Stadium</option>
                                 {stadiums && stadiums.map((std, idx) => (
@@ -911,7 +912,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.oversChoosen || '6 Over'}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg text-gray-300"
-                                disabled={!isFormEditable}
+                                disabled={!isMetadataEditable}
                             >
                                 {oversOptions && oversOptions.map((opt, idx) => (
                                     <option key={idx} value={opt} className="bg-slate-900">{opt}</option>

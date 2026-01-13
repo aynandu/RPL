@@ -6,6 +6,7 @@ import ScoreCard from '../components/ScoreCard';
 import PointsTable from '../components/PointsTable';
 import AllTeams from '../components/AllTeams';
 import LeadershipTables from '../components/LeadershipTables';
+import Footer from '../components/Footer';
 import { useGame } from '../context/GameContext';
 
 const Home = () => {
@@ -127,6 +128,8 @@ const Home = () => {
                     onClose={() => setSelectedMatchId(null)}
                 />
             )}
+
+            <Footer />
         </div>
     );
 };

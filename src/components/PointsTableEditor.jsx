@@ -16,9 +16,13 @@ const PointsTableEditor = () => {
         updated[index] = { ...updated[index], [field]: value };
 
         // Auto calculate Points: (Won * 2) + Tied
-        if (field === 'won' || field === 'tied') {
+        // Auto calculate Played: Won + Lost + Tied
+        if (field === 'won' || field === 'lost' || field === 'tied') {
             const won = field === 'won' ? Number(value || 0) : Number(updated[index].won || 0);
+            const lost = field === 'lost' ? Number(value || 0) : Number(updated[index].lost || 0);
             const tied = field === 'tied' ? Number(value || 0) : Number(updated[index].tied || 0);
+
+            updated[index].played = won + lost + tied;
             updated[index].points = (won * 2) + tied;
         }
 
@@ -27,15 +31,22 @@ const PointsTableEditor = () => {
     };
 
     const handleSave = () => {
-        const sanitizedTable = localTable.map(team => ({
-            ...team,
-            played: Number(team.played) || 0,
-            won: Number(team.won) || 0,
-            lost: Number(team.lost) || 0,
-            tied: Number(team.tied) || 0,
-            nrr: Number(team.nrr) || 0,
-            points: (Number(team.won) || 0) * 2 + (Number(team.tied) || 0)
-        }));
+        const sanitizedTable = localTable.map(team => {
+            const won = Number(team.won) || 0;
+            const lost = Number(team.lost) || 0;
+            const tied = Number(team.tied) || 0;
+            const played = won + lost + tied;
+
+            return {
+                ...team,
+                played: played,
+                won: won,
+                lost: lost,
+                tied: tied,
+                nrr: Number(team.nrr) || 0,
+                points: (won * 2) + tied
+            };
+        });
         updatePointsTable(sanitizedTable);
         setLocalTable(sanitizedTable);
         setIsDirty(false);
@@ -126,7 +137,7 @@ const PointsTableEditor = () => {
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     );
 };
 

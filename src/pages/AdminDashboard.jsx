@@ -4,6 +4,7 @@ import { Plus, Trash2, Edit2, Upload } from 'lucide-react';
 import ScoreUpdateForm from '../components/ScoreUpdateForm';
 import PointsTableEditor from '../components/PointsTableEditor';
 import TeamManager from '../components/TeamManager';
+import Footer from '../components/Footer';
 
 const AdminDashboard = () => {
     const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle, resetData, stadiums, addStadium, deleteStadium, oversOptions, addOverOption, deleteOverOption, liveStreamUrl, setLiveStreamUrl, liveStreamUrl2, setLiveStreamUrl2 } = useGame();
@@ -442,7 +443,8 @@ const AdminDashboard = () => {
                     </div>
                 )
             }
-        </div >
+            <Footer />
+        </div>
     );
 };
 
