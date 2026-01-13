@@ -131,8 +131,9 @@ const ScoreCard = ({ match, onClose }) => {
                     {(() => {
                         const t2Stats = match.score.team2;
                         const isSecondInningsStarted = t2Stats.overs > 0 || (match.batting && match.batting.length > 0 && match.status === 'live');
+                        const isFirstInningsDone = match.innings1Overs && match.innings1Overs.length > 0 && match.innings1Overs.every(o => o.savedStats);
 
-                        if (match.status === 'live' && isSecondInningsStarted) {
+                        if (match.status === 'live' && isSecondInningsStarted && isFirstInningsDone) {
                             const target = (match.score.team1.runs || 0) + 1;
                             const runsNeeded = target - (t2Stats.runs || 0);
 

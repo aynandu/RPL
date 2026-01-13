@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { X, Save, Trash2, UserPlus } from 'lucide-react';
+import { X, Save, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
 import SquadSelector from './SquadSelector';
 
 const ScoreUpdateForm = ({ match, onClose }) => {
@@ -15,6 +15,8 @@ const ScoreUpdateForm = ({ match, onClose }) => {
     // Bowler Selector State for "Add Bowler" list
     const [showBowlerSelector, setShowBowlerSelector] = useState(false);
     const [bowlingTeam, setBowlingTeam] = useState(null);
+    const [selectedMatchId, setSelectedMatchId] = useState(null);
+    const [showAddBowlerWarning, setShowAddBowlerWarning] = useState(false);
 
     // Over-specific Bowler Selector State
     const [showOverSelector, setShowOverSelector] = useState(false);
@@ -22,6 +24,9 @@ const ScoreUpdateForm = ({ match, onClose }) => {
 
     // Toggle for Enabling Updates on Completed Matches
     const [updatesEnabled, setUpdatesEnabled] = useState(match?.status !== 'completed');
+
+    // Derived state for enabling/disabling form inputs
+    const isFormEditable = formData.status === 'live' || (formData.status === 'completed' && updatesEnabled);
 
     // Sync updatesEnabled with match status changes
     useEffect(() => {
@@ -277,9 +282,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
         });
     };
 
-    const addBowler = (e) => {
-        if (e) e.preventDefault();
-
+    const addBowler = () => {
         // Determine bowling team (Opposite of batting team)
         const battingTeam = activeTab === 'innings1' ? formData.team1 : formData.team2;
         const bowlingTeamName = activeTab === 'innings1' ? formData.team2 : formData.team1;
@@ -305,7 +308,6 @@ const ScoreUpdateForm = ({ match, onClose }) => {
         });
 
         setShowBowlerSelector(false);
-        setBowlingTeam(null);
         setBowlingTeam(null);
     };
 
@@ -793,6 +795,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.status}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg"
+                                disabled={!isFormEditable && formData.status === 'completed'}
                             >
                                 <option value="upcoming" className="bg-slate-900 text-gray-300">Upcoming</option>
                                 <option value="live" className="bg-slate-900 text-gray-300">Live</option>
@@ -806,9 +809,10 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.matchType || 'Group Stage'}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg text-yellow-300 font-bold"
+                                disabled={!isFormEditable}
                             >
                                 <option value="Group Stage" className="bg-slate-900 text-gray-300">Group Stage</option>
-                                <option value="Quarter Final" className="bg-slate-900 text-gray-300">Quarter Final</option>
+                                <option value="Quarter Final" className="bg-slate-900 text-white font-bold">Quarter Final</option>
                                 <option value="Semi Final - 1" className="bg-slate-900 text-white font-bold">Semi Final - 1</option>
                                 <option value="Semi Final - 2" className="bg-slate-900 text-white font-bold">Semi Final - 2</option>
                                 <option value="Final" className="bg-slate-900 text-yellow-400 font-bold">FINAL</option>
@@ -822,6 +826,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.date ? new Date(formData.date).toISOString().slice(0, 16) : ''}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg"
+                                disabled={!isFormEditable}
                             />
                         </div>
                         <div className="md:col-span-1">
@@ -831,6 +836,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.team1}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg font-bold text-blue-300"
+                                disabled={!isFormEditable}
                             >
                                 <option value="" className="bg-slate-900 text-gray-400">Select Team</option>
                                 {allTeams && allTeams.map((team, idx) => (
@@ -845,6 +851,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.team2}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg font-bold text-purple-300"
+                                disabled={!isFormEditable}
                             >
                                 <option value="" className="bg-slate-900 text-gray-400">Select Team</option>
                                 {allTeams && allTeams.map((team, idx) => (
@@ -859,6 +866,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.manOfTheMatch || ''}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg text-white"
+                                disabled={!isFormEditable}
                             >
                                 <option value="" className="bg-slate-900 text-gray-400">Select Player</option>
                                 {formData.team1 && (
@@ -888,6 +896,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.stadium || 'Indoor Stadium, Pramdom'}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg text-gray-300"
+                                disabled={!isFormEditable}
                             >
                                 <option value="" className="bg-slate-900 text-gray-400">Select Stadium</option>
                                 {stadiums && stadiums.map((std, idx) => (
@@ -902,6 +911,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 value={formData.oversChoosen || '6 Over'}
                                 onChange={handleChange}
                                 className="w-full glass-input p-2 rounded-lg text-gray-300"
+                                disabled={!isFormEditable}
                             >
                                 {oversOptions && oversOptions.map((opt, idx) => (
                                     <option key={idx} value={opt} className="bg-slate-900">{opt}</option>
@@ -917,6 +927,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 onChange={handleChange}
                                 placeholder="e.g. Team A won the toss..."
                                 className="w-full glass-input p-2 rounded-lg"
+                                disabled={!isFormEditable}
                             />
                         </div>
                     </div>
@@ -929,9 +940,9 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 <span className="text-xs font-normal text-blue-400 opacity-70">Runs / Wkts / Overs</span>
                             </h3>
                             <div className="grid grid-cols-3 gap-2">
-                                <input type="number" placeholder="Runs" value={formData.score.team1.runs} onChange={(e) => handleScoreChange('team1', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
-                                <input type="number" placeholder="Wkts" value={formData.score.team1.wickets} onChange={(e) => handleScoreChange('team1', 'wickets', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
-                                <input type="number" placeholder="Overs" value={formData.score.team1.overs} onChange={(e) => handleScoreChange('team1', 'overs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" step="0.1" />
+                                <input type="number" placeholder="Runs" value={formData.score.team1.runs} onChange={(e) => handleScoreChange('team1', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" disabled={!isFormEditable} />
+                                <input type="number" placeholder="Wkts" value={formData.score.team1.wickets} onChange={(e) => handleScoreChange('team1', 'wickets', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" disabled={!isFormEditable} />
+                                <input type="number" placeholder="Overs" value={formData.score.team1.overs} onChange={(e) => handleScoreChange('team1', 'overs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" step="0.1" disabled={!isFormEditable} />
                             </div>
                         </div>
                         <div className="bg-purple-500/10 p-4 rounded-xl border border-purple-500/20">
@@ -940,9 +951,9 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 <span className="text-xs font-normal text-purple-400 opacity-70">Runs / Wkts / Overs</span>
                             </h3>
                             <div className="grid grid-cols-3 gap-2">
-                                <input type="number" placeholder="Runs" value={formData.score.team2.runs} onChange={(e) => handleScoreChange('team2', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
-                                <input type="number" placeholder="Wkts" value={formData.score.team2.wickets} onChange={(e) => handleScoreChange('team2', 'wickets', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" />
-                                <input type="number" placeholder="Overs" value={formData.score.team2.overs} onChange={(e) => handleScoreChange('team2', 'overs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" step="0.1" />
+                                <input type="number" placeholder="Runs" value={formData.score.team2.runs} onChange={(e) => handleScoreChange('team2', 'runs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" disabled={!isFormEditable} />
+                                <input type="number" placeholder="Wkts" value={formData.score.team2.wickets} onChange={(e) => handleScoreChange('team2', 'wickets', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" disabled={!isFormEditable} />
+                                <input type="number" placeholder="Overs" value={formData.score.team2.overs} onChange={(e) => handleScoreChange('team2', 'overs', e.target.value)} className="w-full glass-input p-2 rounded text-center font-mono text-lg" step="0.1" disabled={!isFormEditable} />
                             </div>
                         </div>
                     </div>
@@ -978,7 +989,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 <span className="w-1.5 h-6 bg-yellow-500 rounded-full inline-block"></span>
                                 Batting: {activeTab === 'innings1' ? formData.team1 : formData.team2}
                             </h3>
-                            <button type="button" onClick={initBatting} className="text-xs text-blue-400 hover:text-blue-300 px-3 py-1 rounded-full bg-blue-500/10 hover:bg-blue-500/20 transition-colors">Initialize (11 Players)</button>
+                            <button type="button" onClick={initBatting} className="text-xs text-blue-400 hover:text-blue-300 px-3 py-1.5 rounded-full bg-blue-500/10 hover:bg-blue-500/20 transition-colors" disabled={!isFormEditable}>Initialize (11 Players)</button>
                         </div>
                         {currentBatting && Array.isArray(currentBatting) && (
                             <div className="space-y-4">
@@ -1007,6 +1018,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                     value={batter.name}
                                                     onChange={(e) => handleBattingChange(idx, 'name', e.target.value)}
                                                     className="w-full glass-input p-2 rounded text-sm mb-1"
+                                                    disabled={!isFormEditable}
                                                 />
                                             </div>
                                             <div className="col-span-2">
@@ -1014,6 +1026,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                     value={batter.dismissalType || "nextToBat"}
                                                     onChange={(e) => handleBattingChange(idx, 'dismissalType', e.target.value)}
                                                     className="w-full glass-input p-2 rounded text-xs"
+                                                    disabled={!isFormEditable}
                                                 >
                                                     <option value="notOut" className="bg-slate-900">Not Out</option>
                                                     <option value="bowled" className="bg-slate-900">Bowled</option>
@@ -1033,11 +1046,14 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                         placeholder="Select Bowler"
                                                         value={batter.dismissalBowler || ""}
                                                         onClick={() => {
-                                                            setPendingOppositionUpdate({ batterIndex: idx, field: 'dismissalBowler' });
-                                                            setShowOppositionSelector(true);
+                                                            if (isFormEditable) {
+                                                                setPendingOppositionUpdate({ batterIndex: idx, field: 'dismissalBowler' });
+                                                                setShowOppositionSelector(true);
+                                                            }
                                                         }}
                                                         readOnly
                                                         className="w-full glass-input p-1.5 rounded text-xs border-l-2 border-red-500/50 cursor-pointer hover:bg-white/10"
+                                                        disabled={!isFormEditable}
                                                     />
                                                 )}
                                                 {['caught', 'stumping', 'runOut'].includes(batter.dismissalType) && (
@@ -1046,11 +1062,14 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                         placeholder={batter.dismissalType === 'runOut' ? "Select Fielder" : (batter.dismissalType === 'stumping' ? "Select Keeper" : "Select Fielder")}
                                                         value={batter.dismissalFielder || ""}
                                                         onClick={() => {
-                                                            setPendingOppositionUpdate({ batterIndex: idx, field: 'dismissalFielder' });
-                                                            setShowOppositionSelector(true);
+                                                            if (isFormEditable) {
+                                                                setPendingOppositionUpdate({ batterIndex: idx, field: 'dismissalFielder' });
+                                                                setShowOppositionSelector(true);
+                                                            }
                                                         }}
                                                         readOnly
                                                         className="w-full glass-input p-1.5 rounded text-xs border-l-2 border-yellow-500/50 cursor-pointer hover:bg-white/10"
+                                                        disabled={!isFormEditable}
                                                     />
                                                 )}
                                             </div>
@@ -1062,6 +1081,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                     onChange={(e) => handleBattingChange(idx, 'runs', e.target.value)}
                                                     className="w-full glass-input p-2 rounded text-center text-sm font-bold text-white"
                                                     placeholder="0"
+                                                    disabled={!isFormEditable}
                                                 />
                                                 <input
                                                     type="number"
@@ -1069,6 +1089,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                     onChange={(e) => handleBattingChange(idx, 'balls', e.target.value)}
                                                     className="w-full glass-input p-2 rounded text-center text-sm"
                                                     placeholder="0"
+                                                    disabled={!isFormEditable}
                                                 />
                                                 <input
                                                     type="number"
@@ -1076,6 +1097,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                     onChange={(e) => handleBattingChange(idx, 'fours', e.target.value)}
                                                     className="w-full glass-input p-2 rounded text-center text-sm text-gray-400"
                                                     placeholder="0"
+                                                    disabled={!isFormEditable}
                                                 />
                                                 <input
                                                     type="number"
@@ -1083,6 +1105,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                     onChange={(e) => handleBattingChange(idx, 'sixes', e.target.value)}
                                                     className="w-full glass-input p-2 rounded text-center text-sm text-gray-400"
                                                     placeholder="0"
+                                                    disabled={!isFormEditable}
                                                 />
                                             </div>
                                         </div>
@@ -1099,6 +1122,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                     onChange={(e) => handleScoreChange(activeTab === 'innings1' ? 'team1' : 'team2', 'extras', e.target.value)}
                                     className="glass-input p-2 rounded text-center w-24 font-bold text-yellow-400"
                                     placeholder="0"
+                                    disabled={!isFormEditable}
                                 />
                             </div>
                         )}
@@ -1111,8 +1135,8 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                 <span className="w-1.5 h-6 bg-red-500 rounded-full inline-block"></span>
                                 Bowling: {activeTab === 'innings1' ? formData.team2 : formData.team1}
                             </h3>
-                            <button type="button" onClick={addBowler} className="text-xs text-white bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1">
-                                + Add Bowler
+                            <button type="button" onClick={() => setShowAddBowlerWarning(true)} className="text-xs text-white bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1" disabled={!isFormEditable}>
+                                + Manually Add Bowler
                             </button>
                         </div>
                         {currentBowling && Array.isArray(currentBowling) && (
@@ -1137,6 +1161,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                 value={bowler.name}
                                                 onChange={(e) => handleBowlingChange(idx, 'name', e.target.value)}
                                                 className="w-full glass-input p-2 rounded text-sm"
+                                                disabled={!isFormEditable}
                                             />
                                         </div>
                                         <div className="col-span-1">
@@ -1146,6 +1171,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                 value={bowler.overs}
                                                 onChange={(e) => handleBowlingChange(idx, 'overs', e.target.value)}
                                                 className="w-full glass-input p-2 rounded text-center text-sm"
+                                                disabled={!isFormEditable}
                                             />
                                         </div>
                                         <div className="col-span-1">
@@ -1155,6 +1181,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                 onChange={(e) => handleBowlingChange(idx, 'maidens', e.target.value)}
                                                 className="w-full glass-input p-2 rounded text-center text-sm"
                                                 placeholder="0"
+                                                disabled={!isFormEditable}
                                             />
                                         </div>
                                         <div className="col-span-1">
@@ -1163,6 +1190,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                 value={bowler.runs}
                                                 onChange={(e) => handleBowlingChange(idx, 'runs', e.target.value)}
                                                 className="w-full glass-input p-2 rounded text-center text-sm"
+                                                disabled={!isFormEditable}
                                             />
                                         </div>
                                         <div className="col-span-1">
@@ -1171,6 +1199,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                 value={bowler.wickets}
                                                 onChange={(e) => handleBowlingChange(idx, 'wickets', e.target.value)}
                                                 className="w-full glass-input p-2 rounded text-center text-sm font-bold text-red-400"
+                                                disabled={!isFormEditable}
                                             />
                                         </div>
                                         <div className="col-span-2">
@@ -1184,6 +1213,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                 onClick={() => removeBowler(idx)}
                                                 className="text-red-400 hover:text-red-300 hover:bg-red-400/10 p-1.5 rounded-lg transition-colors"
                                                 title="Remove Bowler"
+                                                disabled={!isFormEditable}
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -1218,6 +1248,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                 onClick={() => handleClearOver(overIdx)}
                                                 className="text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded transition-colors"
                                                 title="Clear Over"
+                                                disabled={!isFormEditable}
                                             >
                                                 Clear
                                             </button>
@@ -1230,9 +1261,10 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                             type="text"
                                             placeholder="Select Bowler..."
                                             value={overData.bowler || ""}
-                                            onClick={() => handleOverBowlerClick(overIdx)}
+                                            onClick={() => isFormEditable && handleOverBowlerClick(overIdx)}
                                             readOnly
                                             className="w-full glass-input p-1.5 rounded text-xs text-blue-300 font-bold placeholder-gray-600 mb-1 cursor-pointer hover:bg-white/10 transition-colors text-center"
+                                            disabled={!isFormEditable}
                                         />
                                     </div>
 
@@ -1245,6 +1277,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                                                 onChange={(e) => handleBallInputChange(overIdx, ballIdx, e.target.value)}
                                                 className="w-full glass-input p-1.5 rounded text-center text-xs font-bold"
                                                 placeholder="0"
+                                                disabled={!isFormEditable}
                                             />
                                         ))}
                                     </div>
@@ -1533,6 +1566,42 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                         maxSelection={1}
                         title={`Select Bowler for Over ${activeOverIndex + 1}`}
                     />
+                )
+            }
+
+            {/* Warning Modal for Manually Adding Bowler */}
+            {
+                showAddBowlerWarning && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                        <div className="bg-slate-900 border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-fade-in">
+                            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                                <span className="text-yellow-500"><AlertTriangle size={24} /></span>
+                                Wait a moment!
+                            </h3>
+                            <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                                It is recommended to use the <strong>"Over Card"</strong> option in the Over-by-Over scoring section to add and update bowling data automatically.
+                                <br /><br />
+                                Only add a new bowler manually if you are correcting historical data or if the automatic sync failed.
+                            </p>
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    onClick={() => setShowAddBowlerWarning(false)}
+                                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors text-sm font-bold"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        addBowler();
+                                        setShowAddBowlerWarning(false);
+                                    }}
+                                    className="bg-yellow-600 hover:bg-yellow-500 text-white px-6 py-2 rounded-lg text-sm font-bold transition-colors shadow-lg shadow-yellow-500/20"
+                                >
+                                    Proceed Anyway
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 )
             }
         </div >
