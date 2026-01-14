@@ -7,15 +7,37 @@
     @apply bg-slate-950 text-gray-100 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 min-h-screen;
     background-size: 400% 400%;
     animation: gradient 15s ease infinite;
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
+    /* Premium Custom Scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #ca8a04 rgba(15, 23, 42, 0.5);
   }
 
-  /* Hide scrollbar for Chrome, Safari and Opera */
+  /* Webkit Scrollbar Styling */
   ::-webkit-scrollbar {
-    display: none;
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    /* Slate-900 with opacity */
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #ca8a04, #ea580c);
+    /* Yellow-600 to Orange-600 */
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    /* Makes thumb look thinner */
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #eab308, #f97316);
+    /* Lighter on hover */
+    border: 1px solid transparent;
+    background-clip: content-box;
   }
 }
 
