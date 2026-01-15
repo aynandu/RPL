@@ -50,7 +50,7 @@ export const GameProvider = ({ children }) => {
                     if (settingsData.oversOptions && settingsData.oversOptions.length) setOversOptions(settingsData.oversOptions);
                     if (settingsData.liveStreamUrl) setLiveStreamUrl(settingsData.liveStreamUrl);
                     if (settingsData.liveStreamUrl2) setLiveStreamUrl2(settingsData.liveStreamUrl2);
-                    // if (settingsData.images) setImages(settingsData.images);
+                    if (settingsData.images) setImages(settingsData.images);
                 }
 
                 // Initial Seeding Logic (Simplistic)
@@ -126,8 +126,8 @@ export const GameProvider = ({ children }) => {
     };
 
     const updateImages = (newImages) => {
-        setImages(newImages); // Local only/Settings API if extended
-        // TODO: Persist to Settings API
+        setImages(newImages);
+        updateSettings({ images: newImages });
     };
 
     const updatePointsTable = async (updatedTable) => {

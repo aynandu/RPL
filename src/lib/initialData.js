@@ -60,12 +60,8 @@ export const INITIAL_MATCHES = [
     }
 ];
 
-// Using Raw GitHub User Content links
-export const INITIAL_IMAGES = [
-    "https://raw.githubusercontent.com/aynandu/RPL/ec6cb4a722704452f8327e6a31b78c23955881ae/public/images/carousel1.jpeg",
-    "https://raw.githubusercontent.com/aynandu/RPL/ec6cb4a722704452f8327e6a31b78c23955881ae/public/images/carousel2.jpeg",
-    "https://raw.githubusercontent.com/aynandu/RPL/ec6cb4a722704452f8327e6a31b78c23955881ae/public/images/carousel3.jpeg"
-];
+// User requested to remove all sample images
+export const INITIAL_IMAGES = [];
 
 export const INITIAL_POINTS = [];
 
