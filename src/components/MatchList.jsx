@@ -210,6 +210,7 @@ const MatchList = ({ onSelectMatch }) => {
         let foundNewMilestone = null;
 
         matches.forEach(match => {
+            if (match.status !== 'live') return;
             if (foundNewMilestone) return; // Exit early if we found one to show
 
             // 1. Batting Milestones (50, 100)
