@@ -9,7 +9,7 @@ const MilestonePopup = ({ player, onClose, type = '50' }) => {
         const timer = setTimeout(() => {
             setIsVisible(false);
             setTimeout(onClose, 100);
-        }, 500);
+        }, 1000);
 
         return () => clearTimeout(timer);
     }, [onClose]);
@@ -66,52 +66,47 @@ const MilestonePopup = ({ player, onClose, type = '50' }) => {
     const subStat = isWicket ? `${player.runsConceded}` : `(${player.balls})`;
     const subStatLabel = isWicket ? 'Runs' : '';
 
-    const handleManualClose = () => {
-        setIsVisible(false);
-        setTimeout(onClose, 300);
-    };
-
     return (
         <div className={`fixed inset-0 flex items-center justify-center z-[100] pointer-events-none transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
             <div className={`
                 relative bg-black/90 backdrop-blur-xl p-6 rounded-2xl border ${theme.border} ${theme.shadow}
-                transform transition-all duration-500 flex flex-col items-center gap-3 min-w-[300px] pointer-events-auto
+                transform transition-all duration-500 flex flex-col items-center gap-3 min-w-[300px]
                 ${isVisible ? 'scale-100 translate-y-0' : 'scale-90 translate-y-10'}
             `}>
-                <button
-                    onClick={handleManualClose}
-                    className="absolute top-2 right-2 text-white/50 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-1.5 transition-all z-50 group border border-white/5"
-                    title="Close"
-                >
-                    <X size={16} className="group-hover:scale-110 transition-transform" />
-                </button>
-
                 {/* Decorative Elements */}
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 pointer-events-none">
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2">
                     <div className="relative">
                         <div className={`absolute inset-0 ${theme.glow} blur-xl opacity-50 animate-pulse`}></div>
                         <ThemeIcon size={64} className={`${theme.iconColor} drop-shadow-lg relative z-10`} />
                     </div>
                 </div>
 
-                <div className="mt-8 text-center pointer-events-none">
+                <div className="mt-8 text-center">
                     <h2 className={`text-transparent bg-clip-text bg-gradient-to-r ${theme.textGradient} font-black text-3xl uppercase tracking-widest animate-shine`}>
                         {titleText}
                     </h2>
                     <div className={`w-16 h-1 ${theme.divider} rounded-full mx-auto my-2`}></div>
                 </div>
 
-                <div className="text-center space-y-1 pointer-events-none">
+                <div className="text-center space-y-1">
                     <h3 className="text-white font-bold text-xl">{player.name}</h3>
                     <p className={`${theme.subText} text-sm font-medium uppercase tracking-wider`}>{player.team}</p>
                 </div>
 
-                <div className="bg-white/10 rounded-lg px-6 py-2 mt-2 border border-white/10 pointer-events-none">
+                <div className="bg-white/10 rounded-lg px-6 py-2 mt-2 border border-white/10">
                     <span className="text-2xl font-mono font-bold text-white">
                         {mainStat}
                         <span className="text-lg text-gray-400 ml-1">{subStat}</span>
                     </span>
                 </div>
+
+                {/* Close Button */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-2 right-2 p-1.5 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors pointer-events-auto"
+                >
+                    <X size={18} />
+                </button>
             </div>
         </div>
     );
