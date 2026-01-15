@@ -9,7 +9,7 @@ const MilestonePopup = ({ player, onClose, type = '50' }) => {
         const timer = setTimeout(() => {
             setIsVisible(false);
             setTimeout(onClose, 100);
-        }, 1000);
+        }, 500);
 
         return () => clearTimeout(timer);
     }, [onClose]);
