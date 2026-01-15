@@ -69,7 +69,7 @@ const MilestonePopup = ({ player, onClose, type = '50' }) => {
     return (
         <div
             onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }}
-            className={`fixed inset-0 flex items-center justify-center z-[100] cursor-pointer transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+            className={`fixed inset-0 flex items-center justify-center z-[9999] pointer-events-auto cursor-pointer transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         >
             <div
                 onClick={(e) => {
