@@ -60,14 +60,11 @@ export const INITIAL_MATCHES = [
     }
 ];
 
-import carousel1 from '../assets/images/carousel1.jpeg';
-import carousel2 from '../assets/images/carousel2.jpeg';
-import carousel3 from '../assets/images/carousel3.jpeg';
-
+// User-provided Vercel Source URLs
 export const INITIAL_IMAGES = [
-    carousel1,
-    carousel2,
-    carousel3
+    "https://vercel.com/nandu-a-ys-projects/rpl/FfXJKQpDtTUA1rVqShzDphC6MaLS/source?f=out%2Fimages%2Fcarousel1.jpeg",
+    "https://vercel.com/nandu-a-ys-projects/rpl/FfXJKQpDtTUA1rVqShzDphC6MaLS/source?f=out%2Fimages%2Fcarousel2.jpeg",
+    "https://vercel.com/nandu-a-ys-projects/rpl/FfXJKQpDtTUA1rVqShzDphC6MaLS/source?f=out%2Fimages%2Fcarousel3.jpeg"
 ];
 
 export const INITIAL_POINTS = [];
