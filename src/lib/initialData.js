@@ -60,8 +60,13 @@ export const INITIAL_MATCHES = [
     }
 ];
 
-// User requested to remove all sample images
-export const INITIAL_IMAGES = [];
+// User requested Playbook Images
+export const INITIAL_IMAGES = [
+    "https://img.playbook.com/LePkDfZrkRqIF9GD6CC7l_e3YfOPCbqWeS_aIl-XtDc/w:1000/aHR0cHM6Ly9wcm9k/LnBsYXlib29rYXNz/ZXRzLmNvbS92MC8w/L3Byb2QvbGFyZ2Vf/cHJldmlld3MvOTg1/NjBlYzItOTU3ZS00/YmEzLTg3YzQtOGQ3/ZDY3MGQxNTg0P3R0/bD1ob3VybHkmdmVy/aWZ5PTE3Njg1MTQz/OTktMmJCbDBXT045/YXd3bkw4SSUyQlgw/VXFCWXhtdkh2elph/TkxjWEs4dHVsYXBV/JTNE.webp",
+    "https://img.playbook.com/7G4jKWL8GMKjlsa5mdh9N2yp1kLjRgDWllryevWHxoA/w:1200/aHR0cHM6Ly9wcm9k/LnBsYXlib29rYXNz/ZXRzLmNvbS92MC8w/L3Byb2QvbGFyZ2Vf/cHJldmlld3MvZjFi/ZTFlNTgtNzM1Zi00/MGQ4LWE1NzAtZWNj/ZmM2YWM3MDdlP3R0/bD1ob3VybHkmdmVy/aWZ5PTE3Njg1MTQz/OTktQUp5blZjRW95/bGF1WDB3NTZKc2I0/aXRqbzlxa0pFbkJq/dHI4YVZoV3ZaRSUz/RA.webp",
+    "https://img.playbook.com/0tePWaIH08DCHVpcewrTHX8M4lNx5RP4wP2Q2UBiaEA/w:1000/aHR0cHM6Ly9wcm9k/LnBsYXlib29rYXNz/ZXRzLmNvbS92MC8w/L3Byb2QvbGFyZ2Vf/cHJldmlld3MvYjY2/NmFjZGYtMmE3MS00/NWYxLWE0NjItNzE5/ZWM2NzVjZTQ3P3R0/bD1ob3VybHkmdmVy/aWZ5PTE3Njg1MTQz/OTktRHVHdFdDUmdT/OHdxQlYlMkZlNm4w/UkVLSnJoZHU0WUZj/MktJckU1ZVlEUmVV/JTNE.webp",
+    "https://img.playbook.com/3u23-QTRpMtCr0euec_aGi3VhnC-2kM-AZ7deS5g5Co/w:1200/aHR0cHM6Ly9wcm9k/LnBsYXlib29rYXNz/ZXRzLmNvbS92MC8w/L3Byb2QvbGFyZ2Vf/cHJldmlld3MvNmUy/ZDliMmEtMDk0Zi00/ZTQ0LThmZGYtZGMx/NWMxMmExNzJhP3R0/bD1ob3VybHkmdmVy/aWZ5PTE3Njg1MTQz/OTktazl0azZDQkw4/RVNTcWFTZUczYWpI/Z1F1NWppaE0lMkZl/YlAlMkJraFl3JTJG/VE85byUzRA.webp"
+];
 
 export const INITIAL_POINTS = [];
 
