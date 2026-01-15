@@ -199,18 +199,17 @@ const MatchList = ({ onSelectMatch }) => {
     const [activeMilestone, setActiveMilestone] = React.useState(null);
 
     // Milestone Monitoring
-    React.useEffect(() => {
-        // Load processed milestones to prevent duplicates
-        const getProcessedMilestones = () => {
-            const saved = sessionStorage.getItem('rpl_milestones_session');
-            return new Set(saved ? JSON.parse(saved) : []);
-        };
+    // using useRef to track displayed milestones during via this component's lifecycle only (RAM only, cleared on reload)
+    const processedMilestones = React.useRef(new Set());
 
-        const processed = getProcessedMilestones();
+    React.useEffect(() => {
         let foundNewMilestone = null;
 
         matches.forEach(match => {
+            // STRICT CHECK: Only process 'live' matches.
+            // If match is completed, upcoming, or anything else, IGNORE completely.
             if (match.status !== 'live') return;
+
             if (foundNewMilestone) return; // Exit early if we found one to show
 
             // 1. Batting Milestones (50, 100)
@@ -223,7 +222,7 @@ const MatchList = ({ onSelectMatch }) => {
                     // Check Century (100) - Priority
                     if (runs >= 100) {
                         const key100 = `${match.id}_${p.name}_100`;
-                        if (!processed.has(key100)) {
+                        if (!processedMilestones.current.has(key100)) {
                             foundNewMilestone = {
                                 ...p,
                                 team: p.team || (p.name ? 'Player' : 'Unknown'),
@@ -238,7 +237,7 @@ const MatchList = ({ onSelectMatch }) => {
                     // Check Half-Century (50)
                     if (runs >= 50) {
                         const key50 = `${match.id}_${p.name}_50`;
-                        if (!processed.has(key50)) {
+                        if (!processedMilestones.current.has(key50)) {
                             foundNewMilestone = {
                                 ...p,
                                 team: p.team || (p.name ? 'Player' : 'Unknown'),
@@ -264,16 +263,9 @@ const MatchList = ({ onSelectMatch }) => {
                     const wickets = Number(b.wickets) || 0;
 
                     if (wickets >= 3) {
-                        // Check specifically for THIS wicket count (e.g. 3, then 4, then 5)
-                        // We iterate down or just check the current count.
-                        // Actually, we just check if the current count has been celebrated.
-                        // But if a user jumps from 2 to 4 (unlikely but possible), should we celebrate 3?
-                        // The prompt says "repeat that function every time took added more wickets".
-                        // So checking just the current count is enough. if they jump 2->4, celebrating "4 Wickets" is fine.
-
                         const keyWicket = `${match.id}_${b.name}_${wickets}_wickets`;
 
-                        if (!processed.has(keyWicket)) {
+                        if (!processedMilestones.current.has(keyWicket)) {
                             foundNewMilestone = {
                                 ...b,
                                 team: b.team || 'Bowling Team',
@@ -295,20 +287,15 @@ const MatchList = ({ onSelectMatch }) => {
             // Infer Team Name if missing
             if (!foundNewMilestone.team || foundNewMilestone.team === 'Player' || foundNewMilestone.team === 'Bowling Team') {
                 if (foundNewMilestone.type === 'wickets') {
-                    // Bowler is from the fielding team. 
-                    // Loop through matches to find which team this player is NOT in batting list? Or check bowling lists.
-                    // Simple heuristic: If in `match.score.team1.bowling`, they are Team 1? No, usually bowling arrays track bowlers associated with the innings.
-                    // The `bowling` prop on player objects in `match.bowling` typically comes from the `players` list which has team info.
-                    // Let's rely on global player list lookup if needed, but for now fallback is okay.
+                    // Placeholder for future team inference logic
                 } else {
                     const isTeam1 = (foundNewMilestone.matchId && matches.find(m => m.id === foundNewMilestone.matchId)?.batting || []).some(b => b.name === foundNewMilestone.name);
-                    // foundNewMilestone might not have full match context here easily.
                 }
             }
 
             setActiveMilestone(foundNewMilestone);
-            processed.add(foundNewMilestone.key);
-            sessionStorage.setItem('rpl_milestones_session', JSON.stringify([...processed]));
+            processedMilestones.current.add(foundNewMilestone.key);
+            // No storage saving here
         }
     }, [matches]);
 
