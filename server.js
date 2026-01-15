@@ -66,6 +66,8 @@ const PlayerSchema = new mongoose.Schema({
     name: String,
     team: String,
     role: String,
+    isCaptain: { type: Boolean, default: false },
+    isViceCaptain: { type: Boolean, default: false },
     image: String,
     matches: { type: Number, default: 0 },
     runs: { type: Number, default: 0 },
