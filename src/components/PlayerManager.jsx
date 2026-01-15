@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
+import { useUI } from '../context/UIContext';
 import { X, Save, Plus, Trash2, Edit2 } from 'lucide-react';
 
 const PlayerManager = ({ teamName, onClose, readOnly = false }) => {
     const { players, addPlayer, updatePlayer, deletePlayer } = useGame();
+    const { confirm } = useUI();
     const teamPlayers = players.filter(p => p.team === teamName);
 
     // State for creating/editing
@@ -79,9 +81,9 @@ const PlayerManager = ({ teamName, onClose, readOnly = false }) => {
         setFormData({});
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (readOnly) return;
-        if (window.confirm("Delete this player?")) {
+        if (await confirm("Are you sure you want to delete this player?", "Delete Player")) {
             deletePlayer(id);
         }
     };

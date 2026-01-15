@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
+import { useUI } from '../context/UIContext';
 import { Plus, Trash2, Edit2, Upload } from 'lucide-react';
 import ScoreUpdateForm from '../components/ScoreUpdateForm';
 import PointsTableEditor from '../components/PointsTableEditor';
@@ -8,6 +9,7 @@ import Footer from '../components/Footer';
 
 const AdminDashboard = () => {
     const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle, resetData, stadiums, addStadium, deleteStadium, oversOptions, addOverOption, deleteOverOption, liveStreamUrl, setLiveStreamUrl, liveStreamUrl2, setLiveStreamUrl2 } = useGame();
+    const { toast } = useUI();
     const [editingMatch, setEditingMatch] = useState(null);
     const [newImageUrl, setNewImageUrl] = useState('');
     const [newStadium, setNewStadium] = useState('');
@@ -20,9 +22,9 @@ const AdminDashboard = () => {
             resetData();
             setShowResetModal(false);
             setSecurityKey('');
-            alert('All data has been wiped successfully.');
+            toast.success('All data has been wiped successfully.');
         } else {
-            alert('Wrong security key!');
+            toast.error('Wrong security key!');
             // We stay on the modal/dashboard as requested "show message and take him to admin dashboard"
             // The modal stays open or closes? "take hi, to admin dashboard" implies leaving the modal or just staying on screen.
             // I'll leave modal open or close it? "take him to admin dashboard" usually means redirect. 
@@ -45,7 +47,7 @@ const AdminDashboard = () => {
 
     const handleUpdateTitle = () => {
         updateTournamentTitle(titleSettings);
-        alert('Website Title Updated Successfully!');
+        toast.success('Website Title Updated Successfully!');
     };
 
     const handleAddImage = (e) => {

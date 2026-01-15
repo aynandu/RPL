@@ -1,10 +1,12 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
+import { useUI } from '../context/UIContext';
 import { X, Save, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
 import SquadSelector from './SquadSelector';
 
 const ScoreUpdateForm = ({ match, onClose }) => {
     const { updateMatch, allTeams, players, batchUpdatePlayers, pointsTable, updatePointsTable, stadiums, oversOptions } = useGame(); // Get players from context
+    const { toast, confirm } = useUI();
     const [formData, setFormData] = useState({ ...match, oversChoosen: match.oversChoosen || '6 Over' });
     const [activeTab, setActiveTab] = useState('innings1'); // 'innings1' or 'innings2'
 
@@ -342,7 +344,7 @@ const ScoreUpdateForm = ({ match, onClose }) => {
         const overData = formData[key][overIndex];
 
         if (!overData || !overData.bowler) {
-            alert("Please select a bowler for this over first.");
+            toast.error("Please select a bowler for this over first.");
             return;
         }
 
@@ -423,9 +425,9 @@ const ScoreUpdateForm = ({ match, onClose }) => {
         // alert(`Saved Over ${overData.over} for ${overData.bowler}`);
     };
 
-    const removeBowler = (index) => {
+    const removeBowler = async (index) => {
         const key = getBowlingKey();
-        if (window.confirm("Are you sure you want to remove this bowler?")) {
+        if (await confirm("Are you sure you want to remove this bowler?", "Remove Bowler")) {
             setFormData(prev => ({
                 ...prev,
                 [key]: prev[key].filter((_, i) => i !== index)
@@ -453,15 +455,15 @@ const ScoreUpdateForm = ({ match, onClose }) => {
 
         // Backend handles all stat calculations now (Total Recall System)
         updateMatch(match.id, finalData);
-        alert('Match updates saved successfully!');
+        toast.success('Match updates saved successfully!');
     };
 
     // Derived state for display
     const currentBatting = formData[getBattingKey()];
     const currentBowling = formData[getBowlingKey()];
 
-    const handleClearOver = (overIndex) => {
-        if (window.confirm("Are you sure you want to clear this over? This will remove the stats from the bowler and reset the card.")) {
+    const handleClearOver = async (overIndex) => {
+        if (await confirm("Are you sure you want to clear this over? This will remove the stats from the bowler and reset the card.", "Clear Over")) {
             const key = activeTab === 'innings1' ? 'innings1Overs' : 'innings2Overs';
             const bowlingKey = activeTab === 'innings1' ? 'bowling' : 'secondInningsBowling';
 

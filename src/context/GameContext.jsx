@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useUI } from './UIContext';
 import { INITIAL_MATCHES, INITIAL_IMAGES, INITIAL_POINTS, ALL_TEAMS } from '../lib/initialData';
 
 const GameContext = createContext();
@@ -8,6 +9,7 @@ export const useGame = () => useContext(GameContext);
 const API_BASE = 'http://localhost:5000/api';
 
 export const GameProvider = ({ children }) => {
+    const { toast } = useUI();
     // State
     const [matches, setMatches] = useState([]);
     const [images, setImages] = useState(INITIAL_IMAGES); // Still local/stub for now or fetch if implemented
@@ -275,7 +277,7 @@ export const GameProvider = ({ children }) => {
         setPlayers([]);
         try {
             await fetch(`${API_BASE}/wipe`, { method: 'DELETE' });
-            alert("All data wiped from Database.");
+            toast.success("All data wiped from Database.");
         } catch (err) { console.error("Wipe failed", err); }
     };
 

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
+import { useUI } from '../context/UIContext';
 import { Users, Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 import PlayerManager from './PlayerManager';
 
 const TeamManager = () => {
     const { pointsTable, updatePointsTable, deleteTeam } = useGame();
+    const { confirm } = useUI();
     const [isAdding, setIsAdding] = useState(false);
     const [newTeamName, setNewTeamName] = useState('');
     const [editingIndex, setEditingIndex] = useState(null);
@@ -30,9 +32,9 @@ const TeamManager = () => {
         setIsAdding(false);
     };
 
-    const handleDelete = (index) => {
+    const handleDelete = async (index) => {
         const teamName = pointsTable[index].team;
-        if (window.confirm(`Are you sure you want to delete "${teamName}"? This will remove the team from the Points Table and future matches.`)) {
+        if (await confirm(`Are you sure you want to delete "${teamName}"? This will remove the team from the Points Table and future matches.`, "Delete Team")) {
             deleteTeam(teamName);
         }
     };
