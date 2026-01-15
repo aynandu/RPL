@@ -5,130 +5,78 @@ const GameContext = createContext();
 
 export const useGame = () => useContext(GameContext);
 
+const API_BASE = 'http://localhost:5000/api';
+
 export const GameProvider = ({ children }) => {
-    // Initialize state from LocalStorage or fallback to initial data
-    const [matches, setMatches] = useState(() => {
-        const saved = localStorage.getItem('rpl_matches');
-        return saved ? JSON.parse(saved) : INITIAL_MATCHES;
-    });
+    // State
+    const [matches, setMatches] = useState([]);
+    const [images, setImages] = useState(INITIAL_IMAGES); // Still local/stub for now or fetch if implemented
+    const [pointsTable, setPointsTable] = useState([]);
+    const [players, setPlayers] = useState([]);
+    const [tournamentTitle, setTournamentTitle] = useState({ name: 'Revenue Premier League', season: 'S2' });
+    const [stadiums, setStadiums] = useState(['Indoor Stadium, Pramdom', 'Turf, Pathanamthitta']);
+    const [oversOptions, setOversOptions] = useState(['6 Over', '8 Over', '10 Over']);
+    const [liveStreamUrl, setLiveStreamUrl] = useState('');
+    const [liveStreamUrl2, setLiveStreamUrl2] = useState('');
+    const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('rpl_is_admin') === 'true'); // Keep auth local for now
 
-    const [images, setImages] = useState(() => {
-        const saved = localStorage.getItem('rpl_images');
-        return saved ? JSON.parse(saved) : INITIAL_IMAGES;
-    });
-
-    const [pointsTable, setPointsTable] = useState(() => {
-        const saved = localStorage.getItem('rpl_points');
-        return saved ? JSON.parse(saved) : INITIAL_POINTS;
-    });
-
-    const [isAdmin, setIsAdmin] = useState(() => {
-        return localStorage.getItem('rpl_is_admin') === 'true';
-    });
-
-    const [players, setPlayers] = useState(() => {
-        const saved = localStorage.getItem('rpl_players');
-        return saved ? JSON.parse(saved) : [];
-    });
-
-    const [tournamentTitle, setTournamentTitle] = useState(() => {
-        const saved = localStorage.getItem('rpl_title');
-        return saved ? JSON.parse(saved) : { name: 'Revenue Premier League', season: 'S2' };
-    });
-
-    const [stadiums, setStadiums] = useState(() => {
-        const saved = localStorage.getItem('rpl_stadiums');
-        return saved ? JSON.parse(saved) : ['Indoor Stadium, Pramdom', 'Turf, Pathanamthitta'];
-    });
-
-    const [oversOptions, setOversOptions] = useState(() => {
-        const saved = localStorage.getItem('rpl_overs_options');
-        return saved ? JSON.parse(saved) : ['6 Over', '8 Over', '10 Over'];
-    });
-
-    const [liveStreamUrl, setLiveStreamUrl] = useState(() => {
-        return localStorage.getItem('rpl_livestream') || '';
-    });
-
-    const [liveStreamUrl2, setLiveStreamUrl2] = useState(() => {
-        return localStorage.getItem('rpl_livestream2') || '';
-    });
-
-    // Persist changes
+    // Fetch Data on Mount
     useEffect(() => {
-        localStorage.setItem('rpl_matches', JSON.stringify(matches));
-    }, [matches]);
+        const fetchData = async () => {
+            try {
+                // 1. Matches
+                const matchesRes = await fetch(`${API_BASE}/matches`);
+                const matchesData = await matchesRes.json();
+                setMatches(matchesData);
 
-    useEffect(() => {
-        localStorage.setItem('rpl_images', JSON.stringify(images));
-    }, [images]);
+                // 2. Teams (Points Table)
+                const teamsRes = await fetch(`${API_BASE}/teams`);
+                const teamsData = await teamsRes.json();
+                setPointsTable(teamsData);
 
-    useEffect(() => {
-        localStorage.setItem('rpl_points', JSON.stringify(pointsTable));
-    }, [pointsTable]);
+                // 3. Players
+                const playersRes = await fetch(`${API_BASE}/players`);
+                const playersData = await playersRes.json();
+                setPlayers(playersData);
 
-    useEffect(() => {
-        localStorage.setItem('rpl_players', JSON.stringify(players));
-    }, [players]);
+                // 4. Settings
+                const settingsRes = await fetch(`${API_BASE}/settings`);
+                const settingsData = await settingsRes.json();
+                if (settingsData) {
+                    if (settingsData.tournamentTitle) setTournamentTitle(settingsData.tournamentTitle);
+                    if (settingsData.stadiums && settingsData.stadiums.length) setStadiums(settingsData.stadiums);
+                    if (settingsData.oversOptions && settingsData.oversOptions.length) setOversOptions(settingsData.oversOptions);
+                    if (settingsData.liveStreamUrl) setLiveStreamUrl(settingsData.liveStreamUrl);
+                    if (settingsData.liveStreamUrl2) setLiveStreamUrl2(settingsData.liveStreamUrl2);
+                    // if (settingsData.images) setImages(settingsData.images);
+                }
 
-    useEffect(() => {
-        localStorage.setItem('rpl_overs_options', JSON.stringify(oversOptions));
-    }, [oversOptions]);
+                // Initial Seeding Logic (Simplistic)
+                if (matchesData.length === 0 && teamsData.length === 0) {
+                    // console.log("Seeding initial data..."); 
+                    // Ideally call a seed API, but for now we start empty or manual entry
+                }
 
-    useEffect(() => {
-        localStorage.setItem('rpl_livestream', liveStreamUrl);
-    }, [liveStreamUrl]);
+            } catch (error) {
+                console.error("Failed to fetch initial data:", error);
+            }
+        };
 
-    useEffect(() => {
-        localStorage.setItem('rpl_livestream2', liveStreamUrl2);
-    }, [liveStreamUrl2]);
+        fetchData();
 
+        // Polling for live updates (Optional but good for multi-user)
+        const interval = setInterval(fetchData, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Auth Persist
     useEffect(() => {
         localStorage.setItem('rpl_is_admin', isAdmin);
     }, [isAdmin]);
 
-    useEffect(() => {
-        localStorage.setItem('rpl_title', JSON.stringify(tournamentTitle));
-    }, [tournamentTitle]);
-
-    useEffect(() => {
-        localStorage.setItem('rpl_stadiums', JSON.stringify(stadiums));
-    }, [stadiums]);
-
-    // Cross-tab Synchronization
-    useEffect(() => {
-        const handleStorageChange = (e) => {
-            if (e.key === 'rpl_matches') {
-                setMatches(JSON.parse(e.newValue || '[]'));
-            } else if (e.key === 'rpl_images') {
-                setImages(JSON.parse(e.newValue || '[]'));
-            } else if (e.key === 'rpl_points') {
-                setPointsTable(JSON.parse(e.newValue || '[]'));
-            } else if (e.key === 'rpl_players') {
-                setPlayers(JSON.parse(e.newValue || '[]'));
-            } else if (e.key === 'rpl_is_admin') {
-                setIsAdmin(e.newValue === 'true');
-            } else if (e.key === 'rpl_title') {
-                setTournamentTitle(JSON.parse(e.newValue || '{}'));
-            } else if (e.key === 'rpl_stadiums') {
-                setStadiums(JSON.parse(e.newValue || '[]'));
-            } else if (e.key === 'rpl_overs_options') {
-                setOversOptions(JSON.parse(e.newValue || '[]'));
-            } else if (e.key === 'rpl_livestream') {
-                setLiveStreamUrl(e.newValue || '');
-            } else if (e.key === 'rpl_livestream2') {
-                setLiveStreamUrl2(e.newValue || '');
-            }
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, []);
-
-    // Derived state
-    const allTeams = pointsTable.map(team => team.team);
 
     // Actions
+
     const login = (username, password) => {
         if (username === 'admin' && password === 'admin') {
             setIsAdmin(true);
@@ -141,43 +89,84 @@ export const GameProvider = ({ children }) => {
         setIsAdmin(false);
     };
 
-    const updateMatch = (id, updates) => {
+    const updateMatch = async (id, updates) => {
+        // Optimistic Update
         setMatches(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+        try {
+            await fetch(`${API_BASE}/matches/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+        } catch (err) { console.error("Update Match failed:", err); }
     };
 
-    const addMatch = (match) => {
-        setMatches(prev => {
-            const maxId = prev.length > 0 ? Math.max(...prev.map(m => m.id)) : 0;
-            return [...prev, { ...match, id: maxId + 1 }];
-        });
+    const addMatch = async (match) => {
+        // Optimistic
+        const maxId = matches.length > 0 ? Math.max(...matches.map(m => m.id)) : 0;
+        const newMatch = { ...match, id: maxId + 1 };
+        setMatches(prev => [...prev, newMatch]);
+
+        try {
+            await fetch(`${API_BASE}/matches`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newMatch)
+            });
+        } catch (err) { console.error("Add Match failed", err); }
     };
 
-    const deleteMatch = (id) => {
+    const deleteMatch = async (id) => {
         setMatches(prev => prev.filter(m => m.id !== id));
+        try {
+            await fetch(`${API_BASE}/matches/${id}`, { method: 'DELETE' });
+        } catch (err) { console.error("Delete Match failed", err); }
     };
 
     const updateImages = (newImages) => {
-        setImages(newImages);
+        setImages(newImages); // Local only/Settings API if extended
+        // TODO: Persist to Settings API
     };
 
-    const updatePointsTable = (updatedTable) => {
+    const updatePointsTable = async (updatedTable) => {
         setPointsTable(updatedTable);
+        try {
+            await fetch(`${API_BASE}/teams/batch`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedTable)
+            });
+        } catch (err) { console.error("Update Table failed", err); }
     };
 
-    const addPlayer = (player) => {
-        setPlayers(prev => {
-            const maxId = prev.length > 0 ? Math.max(...prev.map(p => p.id || 0)) : 0;
-            return [...prev, { ...player, id: maxId + 1 }];
-        });
+    const addPlayer = async (player) => {
+        const maxId = players.length > 0 ? Math.max(...players.map(p => p.id || 0)) : 0;
+        const newPlayer = { ...player, id: maxId + 1 };
+        setPlayers(prev => [...prev, newPlayer]);
+        try {
+            await fetch(`${API_BASE}/players`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newPlayer)
+            });
+        } catch (err) { console.error("Add Player failed", err); }
     };
 
-    const updatePlayer = (id, updates) => {
+    const updatePlayer = async (id, updates) => {
         setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+        try {
+            await fetch(`${API_BASE}/players/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+        } catch (err) { console.error("Update Player failed", err); }
     };
 
-    const batchUpdatePlayers = (updates) => {
+    const batchUpdatePlayers = async (updates) => {
         // updates: [{ playerId, stats: { runs: 0, ... } }]
-        setPlayers(prev => prev.map(p => {
+        // Optimistic State Update
+        const updatedPlayers = players.map(p => {
             const update = updates.find(u => u.playerId === p.id);
             if (update) {
                 const s = update.stats;
@@ -198,41 +187,93 @@ export const GameProvider = ({ children }) => {
                 };
             }
             return p;
-        }));
+        });
+        setPlayers(updatedPlayers);
+
+        // Prepare payload for backend (Full player objects or partials? Backend expects full Objects for bulk update in my impl)
+        // Let's send the FULL updated player objects that changed
+        const changedPlayers = updatedPlayers.filter(p => updates.some(u => u.playerId === p.id));
+        try {
+            await fetch(`${API_BASE}/players/batch`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(changedPlayers)
+            });
+        } catch (err) { console.error("Batch Update failed", err); }
     };
 
-    const deletePlayer = (id) => {
+    const deletePlayer = async (id) => {
         setPlayers(prev => prev.filter(p => p.id !== id));
+        try {
+            await fetch(`${API_BASE}/players/${id}`, { method: 'DELETE' });
+        } catch (err) { console.error("Delete Player failed", err); }
+    };
+
+    // Helper to update Settings
+    const updateSettings = async (newSettings) => {
+        try {
+            await fetch(`${API_BASE}/settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSettings)
+            });
+        } catch (err) { console.error("Settings Update failed", err); }
     };
 
     const addStadium = (stadium) => {
         if (!stadiums.includes(stadium)) {
-            setStadiums(prev => [...prev, stadium]);
+            const newStadiums = [...stadiums, stadium];
+            setStadiums(newStadiums);
+            updateSettings({ stadiums: newStadiums });
         }
     };
 
     const deleteStadium = (stadium) => {
-        setStadiums(prev => prev.filter(s => s !== stadium));
+        const newStadiums = stadiums.filter(s => s !== stadium);
+        setStadiums(newStadiums);
+        updateSettings({ stadiums: newStadiums });
     };
 
     const addOverOption = (over) => {
         if (!oversOptions.includes(over)) {
-            setOversOptions(prev => [...prev, over]);
+            const newOpts = [...oversOptions, over];
+            setOversOptions(newOpts);
+            updateSettings({ oversOptions: newOpts });
         }
     };
 
     const deleteOverOption = (over) => {
-        setOversOptions(prev => prev.filter(o => o !== over));
+        const newOpts = oversOptions.filter(o => o !== over);
+        setOversOptions(newOpts);
+        updateSettings({ oversOptions: newOpts });
     };
 
-    const resetData = () => {
+    const wrappedSetLiveStreamMs1 = (url) => {
+        setLiveStreamUrl(url);
+        updateSettings({ liveStreamUrl: url });
+    };
+    const wrappedSetLiveStreamMs2 = (url) => {
+        setLiveStreamUrl2(url);
+        updateSettings({ liveStreamUrl2: url });
+    };
+    const wrappedSetTournamentTitle = (title) => {
+        setTournamentTitle(title);
+        updateSettings({ tournamentTitle: title });
+    };
+
+
+    const resetData = async () => {
         setMatches([]);
         setPointsTable([]);
         setPlayers([]);
-        localStorage.setItem('rpl_matches', JSON.stringify([]));
-        localStorage.setItem('rpl_points', JSON.stringify([]));
-        localStorage.setItem('rpl_players', JSON.stringify([]));
+        try {
+            await fetch(`${API_BASE}/wipe`, { method: 'DELETE' });
+            alert("All data wiped from Database.");
+        } catch (err) { console.error("Wipe failed", err); }
     };
+
+    // Derived state
+    const allTeams = pointsTable.map(team => team.team);
 
     return (
         <GameContext.Provider value={{
@@ -254,7 +295,7 @@ export const GameProvider = ({ children }) => {
             batchUpdatePlayers,
             deletePlayer,
             tournamentTitle,
-            updateTournamentTitle: setTournamentTitle,
+            updateTournamentTitle: wrappedSetTournamentTitle,
             stadiums,
             addStadium,
             deleteStadium,
@@ -262,9 +303,9 @@ export const GameProvider = ({ children }) => {
             addOverOption,
             deleteOverOption,
             liveStreamUrl,
-            setLiveStreamUrl,
+            setLiveStreamUrl: wrappedSetLiveStreamMs1,
             liveStreamUrl2,
-            setLiveStreamUrl2,
+            setLiveStreamUrl2: wrappedSetLiveStreamMs2,
             resetData
         }}>
             {children}
