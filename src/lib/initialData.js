@@ -60,14 +60,11 @@ export const INITIAL_MATCHES = [
     }
 ];
 
-import carousel1 from '../assets/images/carousel1.jpeg';
-import carousel2 from '../assets/images/carousel2.jpeg';
-import carousel3 from '../assets/images/carousel3.jpeg';
-
+// Using Raw GitHub User Content links
 export const INITIAL_IMAGES = [
-    carousel1,
-    carousel2,
-    carousel3
+    "https://raw.githubusercontent.com/aynandu/RPL/ec6cb4a722704452f8327e6a31b78c23955881ae/public/images/carousel1.jpeg",
+    "https://raw.githubusercontent.com/aynandu/RPL/ec6cb4a722704452f8327e6a31b78c23955881ae/public/images/carousel2.jpeg",
+    "https://raw.githubusercontent.com/aynandu/RPL/ec6cb4a722704452f8327e6a31b78c23955881ae/public/images/carousel3.jpeg"
 ];
 
 export const INITIAL_POINTS = [];
