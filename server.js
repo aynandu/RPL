@@ -156,6 +156,14 @@ app.post('/api/teams/batch', async (req, res) => { // For updatePointsTable
         res.json(teams);
     } catch (err) { res.status(400).json({ error: err.message }); }
 });
+app.delete('/api/teams/:teamName', async (req, res) => {
+    try {
+        // Find by team name
+        const result = await Team.findOneAndDelete({ team: req.params.teamName });
+        if (!result) return res.status(404).json({ message: 'Team not found' });
+        res.json({ message: 'Deleted', team: result });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
 
 
 // Players Routes

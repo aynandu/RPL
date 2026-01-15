@@ -4,7 +4,7 @@ import { Users, Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 import PlayerManager from './PlayerManager';
 
 const TeamManager = () => {
-    const { pointsTable, updatePointsTable } = useGame();
+    const { pointsTable, updatePointsTable, deleteTeam } = useGame();
     const [isAdding, setIsAdding] = useState(false);
     const [newTeamName, setNewTeamName] = useState('');
     const [editingIndex, setEditingIndex] = useState(null);
@@ -31,9 +31,9 @@ const TeamManager = () => {
     };
 
     const handleDelete = (index) => {
-        if (window.confirm("Are you sure? This will remove the team from the Points Table and future matches.")) {
-            const updated = pointsTable.filter((_, i) => i !== index);
-            updatePointsTable(updated);
+        const teamName = pointsTable[index].team;
+        if (window.confirm(`Are you sure you want to delete "${teamName}"? This will remove the team from the Points Table and future matches.`)) {
+            deleteTeam(teamName);
         }
     };
 

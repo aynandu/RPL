@@ -139,6 +139,13 @@ export const GameProvider = ({ children }) => {
         } catch (err) { console.error("Update Table failed", err); }
     };
 
+    const deleteTeam = async (teamName) => {
+        setPointsTable(prev => prev.filter(t => t.team !== teamName));
+        try {
+            await fetch(`${API_BASE}/teams/${encodeURIComponent(teamName)}`, { method: 'DELETE' });
+        } catch (err) { console.error("Delete Team failed", err); }
+    };
+
     const addPlayer = async (player) => {
         const maxId = players.length > 0 ? Math.max(...players.map(p => p.id || 0)) : 0;
         const newPlayer = { ...player, id: maxId + 1 };
@@ -288,6 +295,7 @@ export const GameProvider = ({ children }) => {
             updateImages,
             pointsTable,
             updatePointsTable,
+            deleteTeam,
             allTeams,
             players,
             addPlayer,
