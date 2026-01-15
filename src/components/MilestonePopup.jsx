@@ -67,8 +67,17 @@ const MilestonePopup = ({ player, onClose, type = '50' }) => {
     const subStatLabel = isWicket ? 'Runs' : '';
 
     return (
-        <div className={`fixed inset-0 flex items-center justify-center z-[100] pointer-events-none transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-            <div className={`
+        <div
+            onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }}
+            className={`fixed inset-0 flex items-center justify-center z-[100] cursor-pointer transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+        >
+            <div
+                onClick={(e) => {
+                    // Optional: Prevent closing if clicking on the card itself?
+                    // User said "click anywere in the screen". Usually this means clicking the card also closes it.
+                    // So I will NOT stop propagation.
+                }}
+                className={`
                 relative bg-black/90 backdrop-blur-xl p-6 rounded-2xl border ${theme.border} ${theme.shadow}
                 transform transition-all duration-500 flex flex-col items-center gap-3 min-w-[300px]
                 ${isVisible ? 'scale-100 translate-y-0' : 'scale-90 translate-y-10'}
