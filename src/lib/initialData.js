@@ -61,9 +61,9 @@ export const INITIAL_MATCHES = [
 ];
 
 export const INITIAL_IMAGES = [
-    "https://images.unsplash.com/photo-1531415074968-055db64351a6?q=80&w=1920&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1920&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?q=80&w=1920&auto=format&fit=crop"
+    "/images/carousel1.jpeg",
+    "/images/carousel2.jpeg",
+    "/images/carousel3.jpeg"
 ];
 
 export const INITIAL_POINTS = [];
