@@ -202,7 +202,7 @@ const MatchList = ({ onSelectMatch }) => {
     React.useEffect(() => {
         // Load processed milestones to prevent duplicates
         const getProcessedMilestones = () => {
-            const saved = sessionStorage.getItem('rpl_milestones_session');
+            const saved = localStorage.getItem('rpl_milestones_permanent');
             return new Set(saved ? JSON.parse(saved) : []);
         };
 
@@ -308,7 +308,7 @@ const MatchList = ({ onSelectMatch }) => {
 
             setActiveMilestone(foundNewMilestone);
             processed.add(foundNewMilestone.key);
-            sessionStorage.setItem('rpl_milestones_session', JSON.stringify([...processed]));
+            localStorage.setItem('rpl_milestones_permanent', JSON.stringify([...processed]));
         }
     }, [matches]);
 
