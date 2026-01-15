@@ -323,7 +323,10 @@ const AdminDashboard = () => {
                     {images.map((img, idx) => (
                         <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden shadow-lg border border-white/10">
                             <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-md p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                <p className="text-xs text-gray-300 truncate font-mono">{img}</p>
+                            </div>
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center mb-6">
                                 <button
                                     onClick={() => handleRemoveImage(idx)}
                                     className="bg-red-500/80 hover:bg-red-600 text-white p-3 rounded-full backdrop-blur-sm transition-transform hover:scale-110"
