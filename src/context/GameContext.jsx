@@ -51,11 +51,19 @@ export const GameProvider = ({ children }) => {
                     if (settingsData.tournamentTitle) setTournamentTitle(settingsData.tournamentTitle);
                     if (settingsData.stadiums && settingsData.stadiums.length) setStadiums(settingsData.stadiums);
                     if (settingsData.oversOptions && settingsData.oversOptions.length) setOversOptions(settingsData.oversOptions);
-                    if (settingsData.liveStreamUrl) setLiveStreamUrl(settingsData.liveStreamUrl);
-                    if (settingsData.liveStreamUrl2) setLiveStreamUrl2(settingsData.liveStreamUrl2);
-                    if (settingsData.liveStreamUrl3) setLiveStreamUrl3(settingsData.liveStreamUrl3);
-                    if (settingsData.liveStreamUrl4) setLiveStreamUrl4(settingsData.liveStreamUrl4);
-                    if (settingsData.liveStreamUrl5) setLiveStreamUrl5(settingsData.liveStreamUrl5);
+                    // Packed Storage for Live Streams (Fixes persistence for 3,4,5)
+                    if (settingsData.liveStreamUrl) {
+                        const parts = settingsData.liveStreamUrl.split('|');
+                        setLiveStreamUrl(parts[0] || '');
+                        // Check if packed string is used, otherwise fall back to discrete field for 2
+                        setLiveStreamUrl2(parts[1] || settingsData.liveStreamUrl2 || '');
+                        setLiveStreamUrl3(parts[2] || '');
+                        setLiveStreamUrl4(parts[3] || '');
+                        setLiveStreamUrl5(parts[4] || '');
+                    } else if (settingsData.liveStreamUrl2) {
+                        // Legacy fallback
+                        setLiveStreamUrl2(settingsData.liveStreamUrl2);
+                    }
                     if (settingsData.images) setImages(settingsData.images);
                 }
 
@@ -263,25 +271,31 @@ export const GameProvider = ({ children }) => {
         updateSettings({ oversOptions: newOpts });
     };
 
+    // Helper to save all streams as one packed string
+    const savePackedStreams = (u1, u2, u3, u4, u5) => {
+        const packed = [u1, u2, u3, u4, u5].join('|');
+        updateSettings({ liveStreamUrl: packed });
+    };
+
     const wrappedSetLiveStreamMs1 = (url) => {
         setLiveStreamUrl(url);
-        updateSettings({ liveStreamUrl: url });
+        savePackedStreams(url, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, liveStreamUrl5);
     };
     const wrappedSetLiveStreamMs2 = (url) => {
         setLiveStreamUrl2(url);
-        updateSettings({ liveStreamUrl2: url });
+        savePackedStreams(liveStreamUrl, url, liveStreamUrl3, liveStreamUrl4, liveStreamUrl5);
     };
     const wrappedSetLiveStreamMs3 = (url) => {
         setLiveStreamUrl3(url);
-        updateSettings({ liveStreamUrl3: url });
+        savePackedStreams(liveStreamUrl, liveStreamUrl2, url, liveStreamUrl4, liveStreamUrl5);
     };
     const wrappedSetLiveStreamMs4 = (url) => {
         setLiveStreamUrl4(url);
-        updateSettings({ liveStreamUrl4: url });
+        savePackedStreams(liveStreamUrl, liveStreamUrl2, liveStreamUrl3, url, liveStreamUrl5);
     };
     const wrappedSetLiveStreamMs5 = (url) => {
         setLiveStreamUrl5(url);
-        updateSettings({ liveStreamUrl5: url });
+        savePackedStreams(liveStreamUrl, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, url);
     };
     const wrappedSetTournamentTitle = (title) => {
         setTournamentTitle(title);
