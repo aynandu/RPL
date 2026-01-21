@@ -275,9 +275,13 @@ export const GameProvider = ({ children }) => {
         setMatches([]);
         setPointsTable([]);
         setPlayers([]);
+        setImages(INITIAL_IMAGES); // Force client-side default immediately
         try {
             await fetch(`${API_BASE}/wipe`, { method: 'DELETE' });
-            toast.success("All data wiped from Database.");
+            // FORCE UPDATE BACKEND with correct defaults immediately after wipe
+            // This prevents the backend from serving its own (old) defaults on next fetch
+            await updateSettings({ images: INITIAL_IMAGES });
+            toast.success("All data wiped. Images reset to Cloudinary defaults.");
         } catch (err) { console.error("Wipe failed", err); }
     };
 
