@@ -20,6 +20,9 @@ export const GameProvider = ({ children }) => {
     const [oversOptions, setOversOptions] = useState(['6 Over', '8 Over', '10 Over']);
     const [liveStreamUrl, setLiveStreamUrl] = useState('');
     const [liveStreamUrl2, setLiveStreamUrl2] = useState('');
+    const [liveStreamUrl3, setLiveStreamUrl3] = useState('');
+    const [liveStreamUrl4, setLiveStreamUrl4] = useState('');
+    const [liveStreamUrl5, setLiveStreamUrl5] = useState('');
     const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('rpl_is_admin') === 'true'); // Keep auth local for now
 
     // Fetch Data on Mount
@@ -50,6 +53,9 @@ export const GameProvider = ({ children }) => {
                     if (settingsData.oversOptions && settingsData.oversOptions.length) setOversOptions(settingsData.oversOptions);
                     if (settingsData.liveStreamUrl) setLiveStreamUrl(settingsData.liveStreamUrl);
                     if (settingsData.liveStreamUrl2) setLiveStreamUrl2(settingsData.liveStreamUrl2);
+                    if (settingsData.liveStreamUrl3) setLiveStreamUrl3(settingsData.liveStreamUrl3);
+                    if (settingsData.liveStreamUrl4) setLiveStreamUrl4(settingsData.liveStreamUrl4);
+                    if (settingsData.liveStreamUrl5) setLiveStreamUrl5(settingsData.liveStreamUrl5);
                     if (settingsData.images) setImages(settingsData.images);
                 }
 
@@ -265,6 +271,18 @@ export const GameProvider = ({ children }) => {
         setLiveStreamUrl2(url);
         updateSettings({ liveStreamUrl2: url });
     };
+    const wrappedSetLiveStreamMs3 = (url) => {
+        setLiveStreamUrl3(url);
+        updateSettings({ liveStreamUrl3: url });
+    };
+    const wrappedSetLiveStreamMs4 = (url) => {
+        setLiveStreamUrl4(url);
+        updateSettings({ liveStreamUrl4: url });
+    };
+    const wrappedSetLiveStreamMs5 = (url) => {
+        setLiveStreamUrl5(url);
+        updateSettings({ liveStreamUrl5: url });
+    };
     const wrappedSetTournamentTitle = (title) => {
         setTournamentTitle(title);
         updateSettings({ tournamentTitle: title });
@@ -320,6 +338,12 @@ export const GameProvider = ({ children }) => {
             setLiveStreamUrl: wrappedSetLiveStreamMs1,
             liveStreamUrl2,
             setLiveStreamUrl2: wrappedSetLiveStreamMs2,
+            liveStreamUrl3,
+            setLiveStreamUrl3: wrappedSetLiveStreamMs3,
+            liveStreamUrl4,
+            setLiveStreamUrl4: wrappedSetLiveStreamMs4,
+            liveStreamUrl5,
+            setLiveStreamUrl5: wrappedSetLiveStreamMs5,
             resetData
         }}>
             {children}

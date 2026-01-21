@@ -8,7 +8,7 @@ import TeamManager from '../components/TeamManager';
 import Footer from '../components/Footer';
 
 const AdminDashboard = () => {
-    const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle, resetData, stadiums, addStadium, deleteStadium, oversOptions, addOverOption, deleteOverOption, liveStreamUrl, setLiveStreamUrl, liveStreamUrl2, setLiveStreamUrl2 } = useGame();
+    const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle, resetData, stadiums, addStadium, deleteStadium, oversOptions, addOverOption, deleteOverOption, liveStreamUrl, setLiveStreamUrl, liveStreamUrl2, setLiveStreamUrl2, liveStreamUrl3, setLiveStreamUrl3, liveStreamUrl4, setLiveStreamUrl4, liveStreamUrl5, setLiveStreamUrl5 } = useGame();
     const { toast } = useUI();
     const [editingMatch, setEditingMatch] = useState(null);
     const [newImageUrl, setNewImageUrl] = useState('');
@@ -277,6 +277,69 @@ const AdminDashboard = () => {
                                 />
                                 <button
                                     onClick={() => setLiveStreamUrl2('')}
+                                    className="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
+                                    title="Clear Stream"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Stream 3 */}
+                        <div className="space-y-1">
+                            <label className="text-white text-xs ml-1 opacity-70">Stream 3</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={liveStreamUrl3}
+                                    onChange={(e) => setLiveStreamUrl3(e.target.value)}
+                                    placeholder="Paste YouTube URL 3"
+                                    className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
+                                />
+                                <button
+                                    onClick={() => setLiveStreamUrl3('')}
+                                    className="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
+                                    title="Clear Stream"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Stream 4 */}
+                        <div className="space-y-1">
+                            <label className="text-white text-xs ml-1 opacity-70">Stream 4</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={liveStreamUrl4}
+                                    onChange={(e) => setLiveStreamUrl4(e.target.value)}
+                                    placeholder="Paste YouTube URL 4"
+                                    className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
+                                />
+                                <button
+                                    onClick={() => setLiveStreamUrl4('')}
+                                    className="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
+                                    title="Clear Stream"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Stream 5 */}
+                        <div className="space-y-1">
+                            <label className="text-white text-xs ml-1 opacity-70">Stream 5</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={liveStreamUrl5}
+                                    onChange={(e) => setLiveStreamUrl5(e.target.value)}
+                                    placeholder="Paste YouTube URL 5"
+                                    className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
+                                />
+                                <button
+                                    onClick={() => setLiveStreamUrl5('')}
                                     className="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
                                     title="Clear Stream"
                                 >

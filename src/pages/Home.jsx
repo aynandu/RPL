@@ -10,7 +10,7 @@ import Footer from '../components/Footer';
 import { useGame } from '../context/GameContext';
 
 const Home = () => {
-    const { matches, liveStreamUrl, liveStreamUrl2 } = useGame();
+    const { matches, liveStreamUrl, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, liveStreamUrl5 } = useGame();
     const [selectedMatchId, setSelectedMatchId] = useState(null);
 
     // Derived state: Always get the latest match data from context
@@ -37,6 +37,9 @@ const Home = () => {
 
     const embedUrl = getEmbedUrl(liveStreamUrl);
     const embedUrl2 = getEmbedUrl(liveStreamUrl2);
+    const embedUrl3 = getEmbedUrl(liveStreamUrl3);
+    const embedUrl4 = getEmbedUrl(liveStreamUrl4);
+    const embedUrl5 = getEmbedUrl(liveStreamUrl5);
 
     return (
         <div className="min-h-screen pb-10">
@@ -54,27 +57,15 @@ const Home = () => {
 
                     {/* Right Column: Sidebar (35%) */}
                     <div className="w-full md:w-[35%]">
-                        {/* Live Stream Player 1 */}
-                        {embedUrl && (
-                            <div className="glass-card overflow-hidden mb-4 border-l-4 border-l-red-600 shadow-xl shadow-red-500/10 animate-fade-in relative group">
-                                <div className="p-4 bg-gradient-to-r from-red-600/20 to-transparent border-b border-white/10 flex justify-between items-center">
-                                    <h3 className="font-bold text-white flex items-center gap-2">
-                                        <span className="relative flex h-3 w-3">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                                        </span>
-                                        LIVE ACTION 1
-                                    </h3>
-                                    <span className="text-[10px] font-bold bg-red-600 px-2 py-0.5 rounded text-white tracking-widest uppercase">
-                                        Streaming
-                                    </span>
-                                </div>
+                        {/* Live Stream Players (No Headers/Labels as requested) */}
+                        {[embedUrl, embedUrl2, embedUrl3, embedUrl4, embedUrl5].map((url, index) => url && (
+                            <div key={index} className="glass-card overflow-hidden mb-4 border-l-4 border-l-cyan-500 shadow-xl shadow-cyan-500/10 animate-fade-in group">
                                 <div className="aspect-video w-full bg-black relative">
                                     <iframe
                                         width="100%"
                                         height="100%"
-                                        src={`${embedUrl}?autoplay=1&mute=1&rel=0`}
-                                        title="Live Stream 1"
+                                        src={`${url}?autoplay=1&mute=1&rel=0`}
+                                        title={`Live Stream ${index + 1}`}
                                         frameBorder="0"
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                         allowFullScreen
@@ -82,37 +73,7 @@ const Home = () => {
                                     ></iframe>
                                 </div>
                             </div>
-                        )}
-
-                        {/* Live Stream Player 2 */}
-                        {embedUrl2 && (
-                            <div className="glass-card overflow-hidden mb-8 border-l-4 border-l-orange-500 shadow-xl shadow-orange-500/10 animate-fade-in relative group">
-                                <div className="p-4 bg-gradient-to-r from-orange-600/20 to-transparent border-b border-white/10 flex justify-between items-center">
-                                    <h3 className="font-bold text-white flex items-center gap-2">
-                                        <span className="relative flex h-3 w-3">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
-                                        </span>
-                                        LIVE ACTION 2
-                                    </h3>
-                                    <span className="text-[10px] font-bold bg-orange-600 px-2 py-0.5 rounded text-white tracking-widest uppercase">
-                                        Streaming
-                                    </span>
-                                </div>
-                                <div className="aspect-video w-full bg-black relative">
-                                    <iframe
-                                        width="100%"
-                                        height="100%"
-                                        src={`${embedUrl2}?autoplay=1&mute=1&rel=0`}
-                                        title="Live Stream 2"
-                                        frameBorder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                        className="absolute inset-0 w-full h-full"
-                                    ></iframe>
-                                </div>
-                            </div>
-                        )}
+                        ))}
 
                         <PointsTable />
                         <AllTeams />
