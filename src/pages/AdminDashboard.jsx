@@ -297,59 +297,45 @@ const AdminDashboard = () => {
                     <span className="w-2 h-8 bg-cyan-500 rounded-full inline-block"></span>
                     Manage Carousel Images
                 </h2>
-                <div className="flex flex-col gap-6">
-                    {/* Playbook Media Library */}
-                    <div className="w-full h-[600px] bg-black/20 rounded-xl overflow-hidden border border-cyan-500/30">
-                        <iframe
-                            src="https://www.playbook.com/e/aynandu/pMXkSqH8mKNQv1UkBQqmJGQV?theme=gallery&assetNumber=3&displaySize=medium"
-                            title="RPL - Playbook.com"
-                            sandbox="allow-same-origin allow-scripts"
-                            frameBorder="0"
-                            width="100%"
-                            height="100%"
-                        ></iframe>
-                    </div>
+                <div className="flex gap-4 mb-6 flex-wrap">
+                    <form onSubmit={handleAddImage} className="flex gap-2 flex-1 min-w-[300px]">
+                        <input
+                            type="text"
+                            value={newImageUrl}
+                            onChange={(e) => setNewImageUrl(e.target.value)}
+                            placeholder="Image URL"
+                            className="flex-1 glass-input p-3 rounded-xl"
+                        />
+                        <button type="submit" className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-2 rounded-full flex items-center gap-2 hover:shadow-lg hover:shadow-cyan-500/20 transition-all font-semibold">
+                            <Plus size={18} /> Add URL
+                        </button>
+                    </form>
 
-                    <div className="flex gap-4 mb-6 flex-wrap">
-                        <form onSubmit={handleAddImage} className="flex gap-2 flex-1 min-w-[300px]">
-                            <input
-                                type="text"
-                                value={newImageUrl}
-                                onChange={(e) => setNewImageUrl(e.target.value)}
-                                placeholder="Image URL"
-                                className="flex-1 glass-input p-3 rounded-xl"
-                            />
-                            <button type="submit" className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-2 rounded-full flex items-center gap-2 hover:shadow-lg hover:shadow-cyan-500/20 transition-all font-semibold">
-                                <Plus size={18} /> Add URL
-                            </button>
-                        </form>
-
-                        <div className="flex items-center gap-2">
-                            <span className="text-gray-500 font-bold px-2">OR</span>
-                            <label className="bg-gradient-to-r from-emerald-600 to-green-600 text-white px-6 py-2 rounded-full cursor-pointer hover:shadow-lg hover:shadow-green-500/20 flex items-center gap-2 transition-all font-semibold">
-                                <Upload size={18} /> Upload Image
-                                <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-                            </label>
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-gray-500 font-bold px-2">OR</span>
+                        <label className="bg-gradient-to-r from-emerald-600 to-green-600 text-white px-6 py-2 rounded-full cursor-pointer hover:shadow-lg hover:shadow-green-500/20 flex items-center gap-2 transition-all font-semibold">
+                            <Upload size={18} /> Upload Image
+                            <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                        </label>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {images.map((img, idx) => (
-                            <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden shadow-lg border border-white/10">
-                                <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                                <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-md p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                    <p className="text-xs text-gray-300 truncate font-mono">{img}</p>
-                                </div>
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center mb-6">
-                                    <button
-                                        onClick={() => handleRemoveImage(idx)}
-                                        className="bg-red-500/80 hover:bg-red-600 text-white p-3 rounded-full backdrop-blur-sm transition-transform hover:scale-110"
-                                    >
-                                        <Trash2 size={20} />
-                                    </button>
-                                </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {images.map((img, idx) => (
+                        <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden shadow-lg border border-white/10">
+                            <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                            <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-md p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                <p className="text-xs text-gray-300 truncate font-mono">{img}</p>
                             </div>
-                        ))}
-                    </div>
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center mb-6">
+                                <button
+                                    onClick={() => handleRemoveImage(idx)}
+                                    className="bg-red-500/80 hover:bg-red-600 text-white p-3 rounded-full backdrop-blur-sm transition-transform hover:scale-110"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
 
