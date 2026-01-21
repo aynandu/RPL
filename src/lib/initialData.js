@@ -1,6 +1,3 @@
-import carousel1 from '../assets/images/carousel1.jpeg';
-import carousel2 from '../assets/images/carousel2.jpeg';
-import carousel3 from '../assets/images/carousel3.jpeg';
 
 export const INITIAL_MATCHES = [
     {
@@ -64,11 +61,13 @@ export const INITIAL_MATCHES = [
     }
 ];
 
-// User requested Mega/Playbook Images (Locally bundled)
+// User requested Cloudinary Images (Stable & Fast)
 export const INITIAL_IMAGES = [
-    carousel1,
-    carousel2,
-    carousel3
+    "https://res.cloudinary.com/dbjl5i7ab/image/upload/v1769003619/WhatsApp_Image_2026-01-09_at_11.22.50_PM_frprv5.jpg",
+    "https://res.cloudinary.com/dbjl5i7ab/image/upload/v1769003534/WhatsApp_Image_2026-01-09_at_11.22.18_PM_tmlo3f.jpg",
+    "https://res.cloudinary.com/dbjl5i7ab/image/upload/v1769003534/WhatsApp_Image_2026-01-09_at_11.22.45_PM_plz4yo.jpg",
+    "https://res.cloudinary.com/dbjl5i7ab/image/upload/v1769003534/WhatsApp_Image_2026-01-09_at_11.22.19_PM_v8spna.jpg",
+    "https://res.cloudinary.com/dbjl5i7ab/image/upload/v1769003534/WhatsApp_Image_2026-01-09_at_11.22.20_PM_plcqqt.jpg"
 ];
 
 export const INITIAL_POINTS = [];
