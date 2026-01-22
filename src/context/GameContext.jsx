@@ -56,7 +56,7 @@ export const GameProvider = ({ children }) => {
                         const parts = settingsData.liveStreamUrl.split('|');
                         setLiveStreamUrl(parts[0] || '');
                         // Check if packed string is used, otherwise fall back to discrete field for 2
-                        setLiveStreamUrl2(parts[1] || settingsData.liveStreamUrl2 || '');
+                        setLiveStreamUrl2(parts[1] !== undefined ? parts[1] : (settingsData.liveStreamUrl2 || ''));
                         setLiveStreamUrl3(parts[2] || '');
                         setLiveStreamUrl4(parts[3] || '');
                         setLiveStreamUrl5(parts[4] || '');
