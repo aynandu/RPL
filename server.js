@@ -86,7 +86,9 @@ const settingsSchema = new mongoose.Schema({
     liveStreamUrl3: String,
     liveStreamUrl4: String,
     liveStreamUrl5: String,
-    images: [String]
+    liveStreamUrl5: String,
+    images: [String],
+    scrollingText: String
 }, { strict: false });
 
 const Match = mongoose.model('Match', matchSchema);

@@ -23,6 +23,7 @@ export const GameProvider = ({ children }) => {
     const [liveStreamUrl3, setLiveStreamUrl3] = useState('');
     const [liveStreamUrl4, setLiveStreamUrl4] = useState('');
     const [liveStreamUrl5, setLiveStreamUrl5] = useState('');
+    const [scrollingText, setScrollingText] = useState('');
     const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('rpl_is_admin') === 'true'); // Keep auth local for now
 
     // Fetch Data on Mount
@@ -67,6 +68,7 @@ export const GameProvider = ({ children }) => {
                     if (settingsData.images && settingsData.images.length > 0) {
                         setImages(settingsData.images);
                     }
+                    if (settingsData.scrollingText) setScrollingText(settingsData.scrollingText);
                 }
 
                 // Initial Seeding Logic (Simplistic)
@@ -303,6 +305,10 @@ export const GameProvider = ({ children }) => {
         setTournamentTitle(title);
         updateSettings({ tournamentTitle: title });
     };
+    const wrappedSetScrollingText = (text) => {
+        setScrollingText(text);
+        updateSettings({ scrollingText: text });
+    };
 
 
     const resetData = async () => {
@@ -360,6 +366,8 @@ export const GameProvider = ({ children }) => {
             setLiveStreamUrl4: wrappedSetLiveStreamMs4,
             liveStreamUrl5,
             setLiveStreamUrl5: wrappedSetLiveStreamMs5,
+            scrollingText,
+            setScrollingText: wrappedSetScrollingText,
             resetData
         }}>
             {children}

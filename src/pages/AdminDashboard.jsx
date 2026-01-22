@@ -8,7 +8,7 @@ import TeamManager from '../components/TeamManager';
 import Footer from '../components/Footer';
 
 const AdminDashboard = () => {
-    const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle, resetData, stadiums, addStadium, deleteStadium, oversOptions, addOverOption, deleteOverOption, liveStreamUrl, setLiveStreamUrl, liveStreamUrl2, setLiveStreamUrl2, liveStreamUrl3, setLiveStreamUrl3, liveStreamUrl4, setLiveStreamUrl4, liveStreamUrl5, setLiveStreamUrl5 } = useGame();
+    const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle, resetData, stadiums, addStadium, deleteStadium, oversOptions, addOverOption, deleteOverOption, liveStreamUrl, setLiveStreamUrl, liveStreamUrl2, setLiveStreamUrl2, liveStreamUrl3, setLiveStreamUrl3, liveStreamUrl4, setLiveStreamUrl4, liveStreamUrl5, setLiveStreamUrl5, scrollingText, setScrollingText } = useGame();
     const { toast } = useUI();
     const [editingMatch, setEditingMatch] = useState(null);
     const [newImageUrl, setNewImageUrl] = useState('');
@@ -39,11 +39,13 @@ const AdminDashboard = () => {
 
     // Title Settings State
     const [titleSettings, setTitleSettings] = useState(tournamentTitle || { name: '', season: '' });
+    const [localTicker, setLocalTicker] = useState('');
 
     // Sync state when context loads
     React.useEffect(() => {
         if (tournamentTitle) setTitleSettings(tournamentTitle);
-    }, [tournamentTitle]);
+        if (scrollingText) setLocalTicker(scrollingText);
+    }, [tournamentTitle, scrollingText]);
 
     const handleUpdateTitle = () => {
         updateTournamentTitle(titleSettings);
@@ -127,6 +129,45 @@ const AdminDashboard = () => {
                     </div>
                     <button onClick={handleUpdateTitle} className="bg-gradient-to-r from-yellow-600 to-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-yellow-500/20 transition-all whitespace-nowrap">
                         Update Title
+                    </button>
+                </div>
+            </div>
+            {/* Scrolling Text Settings */}
+            <div className="glass-card p-6 border-l-4 border-l-orange-500">
+                <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2">
+                    <span className="w-2 h-8 bg-orange-500 rounded-full inline-block"></span>
+                    Ticker News
+                </h2>
+                <div className="flex flex-col md:flex-row gap-4 items-end">
+                    <div className="flex-1 w-full">
+                        <label className="block text-xs font-bold mb-1 text-gray-400 uppercase tracking-wider">Scrolling Announcement (Visible on Home)</label>
+                        <input
+                            type="text"
+                            value={localTicker}
+                            onChange={(e) => setLocalTicker(e.target.value)}
+                            className="w-full glass-input p-3 rounded-xl text-white placeholder-gray-600"
+                            placeholder="e.g. Finals delayed due to rain | Next match at 3 PM"
+                        />
+                    </div>
+                    <button
+                        onClick={() => {
+                            setScrollingText('');
+                            setLocalTicker('');
+                            toast.success("Ticker cleared");
+                        }}
+                        className="bg-red-500/20 text-red-300 px-4 py-3 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all whitespace-nowrap"
+                        title="Clear Text"
+                    >
+                        <Trash2 size={20} />
+                    </button>
+                    <button
+                        onClick={() => {
+                            setScrollingText(localTicker);
+                            toast.success("Ticker Updated");
+                        }}
+                        className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/20 transition-all whitespace-nowrap"
+                    >
+                        Update Ticker
                     </button>
                 </div>
             </div>

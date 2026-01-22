@@ -46,6 +46,28 @@ const Home = () => {
             <Header />
             <Carousel />
 
+            {/* Scrolling News Ticker */}
+            <div className="max-w-7xl mx-auto px-4 mt-6">
+                {(() => {
+                    const { scrollingText } = useGame();
+                    if (!scrollingText) return null;
+                    return (
+                        <div className="glass-card flex items-center overflow-hidden h-12 border-l-4 border-l-orange-500 relative">
+                            {/* Static Badge */}
+                            <div className="bg-orange-600 text-white font-black px-4 h-full flex items-center z-10 shrink-0 shadow-lg uppercase tracking-wider text-sm">
+                                Latest
+                            </div>
+                            {/* Scrolling Text */}
+                            <div className="flex-1 overflow-hidden relative h-full flex items-center">
+                                <div className="animate-marquee whitespace-nowrap text-white font-medium text-lg tracking-wide drop-shadow-md absolute w-full pl-4">
+                                    {scrollingText}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
+            </div>
+
             <div className="max-w-7xl mx-auto px-4 mt-8">
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Left Column: Matches (65%) */}
