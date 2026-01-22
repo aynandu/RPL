@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: rpl-backend2
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
