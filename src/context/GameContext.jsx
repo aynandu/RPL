@@ -64,7 +64,9 @@ export const GameProvider = ({ children }) => {
                         // Legacy fallback
                         setLiveStreamUrl2(settingsData.liveStreamUrl2);
                     }
-                    if (settingsData.images) setImages(settingsData.images);
+                    if (settingsData.images && settingsData.images.length > 0) {
+                        setImages(settingsData.images);
+                    }
                 }
 
                 // Initial Seeding Logic (Simplistic)
