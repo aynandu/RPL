@@ -496,8 +496,6 @@ const ScoreUpdateForm = ({ match, onClose }) => {
                     bowler: "",
                     extras: "",
                     wickets: "",
-                    extras: "",
-                    wickets: "",
                     savedStats: null, // Reset saved status
                     ballAssignments: {} // Reset assignments
                 };
