@@ -59,7 +59,7 @@ const Home = () => {
                             </div>
                             {/* Scrolling Text */}
                             <div className="flex-1 overflow-hidden relative h-full flex items-center">
-                                <div className="animate-marquee whitespace-nowrap text-white font-medium text-lg tracking-wide drop-shadow-md absolute w-full pl-4">
+                                <div className="animate-marquee whitespace-nowrap text-yellow-300 font-bold text-xl tracking-wider drop-shadow-[0_0_10px_rgba(253,224,71,0.8)] absolute w-full pl-4 uppercase">
                                     {scrollingText}
                                 </div>
                             </div>
