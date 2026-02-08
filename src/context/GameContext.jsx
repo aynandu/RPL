@@ -109,9 +109,138 @@ export const GameProvider = ({ children }) => {
         setIsAdmin(false);
     };
 
+    // Helper: Recalculate Points Table based on Completed Matches
+    const recalculateStandings = (currentMatches, currentTable) => {
+        // 1. Reset current table stats (keep team names and initial structure)
+        // Or better, map over allTeams to ensure we cover everyone
+        // But currentTable might have teams not in matches yet.
+        // Let's create a map for O(1) access
+        const teamStats = {};
+
+        // Initialize from existing table (to keep teams that haven't played yet)
+        currentTable.forEach(t => {
+            teamStats[t.team] = {
+                team: t.team,
+                played: 0,
+                won: 0,
+                lost: 0,
+                tied: 0,
+                points: 0,
+                nrr: 0,
+                runsFor: 0,
+                oversFor: 0,
+                runsAgainst: 0,
+                oversAgainst: 0
+            };
+        });
+
+        // 2. Process Completed Matches
+        currentMatches.forEach(m => {
+            if (m.status !== 'completed') return;
+
+            const t1 = m.team1;
+            const t2 = m.team2;
+
+            // Ensure teams exist in our stats map (if added via match but not in table yet - rare but possible)
+            if (!teamStats[t1]) teamStats[t1] = { team: t1, played: 0, won: 0, lost: 0, tied: 0, points: 0, nrr: 0, runsFor: 0, oversFor: 0, runsAgainst: 0, oversAgainst: 0 };
+            if (!teamStats[t2]) teamStats[t2] = { team: t2, played: 0, won: 0, lost: 0, tied: 0, points: 0, nrr: 0, runsFor: 0, oversFor: 0, runsAgainst: 0, oversAgainst: 0 };
+
+            const s1 = m.score.team1;
+            const s2 = m.score.team2;
+
+            // Update Played
+            teamStats[t1].played += 1;
+            teamStats[t2].played += 1;
+
+            // Determine Result
+            if (s1.runs > s2.runs) {
+                teamStats[t1].won += 1;
+                teamStats[t1].points += 2;
+                teamStats[t2].lost += 1;
+            } else if (s2.runs > s1.runs) {
+                teamStats[t2].won += 1;
+                teamStats[t2].points += 2;
+                teamStats[t1].lost += 1;
+            } else {
+                teamStats[t1].tied += 1;
+                teamStats[t1].points += 1;
+                teamStats[t2].tied += 1;
+                teamStats[t2].points += 1;
+            }
+
+            // NRR Calculation Data
+            // Logic: If team is All Out (10 wkts or max wkts), use full overs quota.
+            // But max wickets depends on team size? User said "11 Players" in task.md, so 10 wickets.
+            // However, typically all out means balls bowled doesn't matter, we divide by full quota.
+            // Quota is in `m.oversChoosen` (e.g. "6 Over").
+            const matchOvers = parseInt(m.oversChoosen) || 6;
+
+            const getOversVal = (overs, wickets) => {
+                if (wickets >= 10) return matchOvers;
+                return overs;
+            };
+
+            // Team 1 Batting / Team 2 Bowling
+            teamStats[t1].runsFor += s1.runs;
+            teamStats[t1].oversFor += getOversVal(s1.overs, s1.wickets);
+            teamStats[t2].runsAgainst += s1.runs;
+            teamStats[t2].oversAgainst += getOversVal(s1.overs, s1.wickets);
+
+            // Team 2 Batting / Team 1 Bowling
+            teamStats[t2].runsFor += s2.runs;
+            teamStats[t2].oversFor += getOversVal(s2.overs, s2.wickets);
+            teamStats[t1].runsAgainst += s2.runs;
+            teamStats[t1].oversAgainst += getOversVal(s2.overs, s2.wickets);
+        });
+
+        // 3. Final NRR Calc & Array Conversion
+        const updatedTable = Object.values(teamStats).map(t => {
+            const runRateFor = t.oversFor > 0 ? t.runsFor / t.oversFor : 0;
+            const runRateAgainst = t.oversAgainst > 0 ? t.runsAgainst / t.oversAgainst : 0;
+            t.nrr = (runRateFor - runRateAgainst).toFixed(3);
+
+            // Clean up temp props
+            delete t.runsFor;
+            delete t.oversFor;
+            delete t.runsAgainst;
+            delete t.oversAgainst;
+
+            return t;
+        });
+
+        return updatedTable;
+    };
+
     const updateMatch = async (id, updates) => {
         // Optimistic Update
-        setMatches(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+        let updatedMatches = [];
+        setMatches(prev => {
+            updatedMatches = prev.map(m => m.id === id ? { ...m, ...updates } : m);
+            return updatedMatches;
+        });
+
+        // Trigger Points Table Recalculation if status is 'completed' or changed
+        // We just run it always on match update to be safe and simple (re-syncs everything)
+        // But only if we have pointsTable loaded
+        if (pointsTable.length > 0) {
+            const newTable = recalculateStandings(updatedMatches, pointsTable);
+            // Optimistic update of table
+            setPointsTable(newTable);
+            // We should persist this table update too, but `updatePointsTable` does that.
+            // Let's call it.
+            // Wait, `updatePointsTable` calls API. We should probably do that.
+            // Check if actual values changed to avoid loop/spam? 
+            // For now, let's just fire it. The user wants the update.
+
+            // NOTE: calling updatePointsTable(newTable) inside here might be async race condition 
+            // with the setMatches if we rely on `matches` state there, but we passed `updatedMatches` manually.
+            // The issue is `updatePointsTable` also sets state. 
+            // Let's call the API directly or use the helper but be careful.
+            // To avoid complexity, we'll just fire-and-forget the table update via the helper 
+            // which handles both state and API.
+            updatePointsTable(newTable);
+        }
+
         try {
             await fetch(`${API_BASE}/matches/${id}`, {
                 method: 'PUT',
