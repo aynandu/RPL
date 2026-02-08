@@ -148,16 +148,24 @@ export const GameProvider = ({ children }) => {
             const s1 = m.score.team1;
             const s2 = m.score.team2;
 
+            // Ensure values are numbers for comparison
+            const r1 = Number(s1.runs) || 0;
+            const r2 = Number(s2.runs) || 0;
+            const w1 = Number(s1.wickets) || 0;
+            const w2 = Number(s2.wickets) || 0;
+            const o1 = Number(s1.overs) || 0;
+            const o2 = Number(s2.overs) || 0;
+
             // Update Played
             teamStats[t1].played += 1;
             teamStats[t2].played += 1;
 
             // Determine Result
-            if (s1.runs > s2.runs) {
+            if (r1 > r2) {
                 teamStats[t1].won += 1;
                 teamStats[t1].points += 2;
                 teamStats[t2].lost += 1;
-            } else if (s2.runs > s1.runs) {
+            } else if (r2 > r1) {
                 teamStats[t2].won += 1;
                 teamStats[t2].points += 2;
                 teamStats[t1].lost += 1;
@@ -181,16 +189,16 @@ export const GameProvider = ({ children }) => {
             };
 
             // Team 1 Batting / Team 2 Bowling
-            teamStats[t1].runsFor += s1.runs;
-            teamStats[t1].oversFor += getOversVal(s1.overs, s1.wickets);
-            teamStats[t2].runsAgainst += s1.runs;
-            teamStats[t2].oversAgainst += getOversVal(s1.overs, s1.wickets);
+            teamStats[t1].runsFor += r1;
+            teamStats[t1].oversFor += getOversVal(o1, w1);
+            teamStats[t2].runsAgainst += r1;
+            teamStats[t2].oversAgainst += getOversVal(o1, w1);
 
             // Team 2 Batting / Team 1 Bowling
-            teamStats[t2].runsFor += s2.runs;
-            teamStats[t2].oversFor += getOversVal(s2.overs, s2.wickets);
-            teamStats[t1].runsAgainst += s2.runs;
-            teamStats[t1].oversAgainst += getOversVal(s2.overs, s2.wickets);
+            teamStats[t2].runsFor += r2;
+            teamStats[t2].oversFor += getOversVal(o2, w2);
+            teamStats[t1].runsAgainst += r2;
+            teamStats[t1].oversAgainst += getOversVal(o2, w2);
         });
 
         // 3. Final NRR Calc & Array Conversion

@@ -3,7 +3,7 @@ import { useGame } from '../context/GameContext';
 import { Save, RefreshCw, Plus, Trash2 } from 'lucide-react';
 
 const PointsTableEditor = () => {
-    const { pointsTable, updatePointsTable } = useGame();
+    const { pointsTable, updatePointsTable, forceRecalculatePoints } = useGame();
     const [localTable, setLocalTable] = useState(pointsTable);
     const [isDirty, setIsDirty] = useState(false);
 
@@ -67,6 +67,13 @@ const PointsTableEditor = () => {
                         <Save size={18} /> Save Changes
                     </button>
                 )}
+                <button
+                    onClick={forceRecalculatePoints}
+                    className="ml-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-3 py-2.5 rounded-full flex items-center gap-2 transition-all font-bold text-xs border border-blue-500/30"
+                    title="Recalculate Points from Scratch"
+                >
+                    <RefreshCw size={14} /> Reset & Rebuild
+                </button>
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-white/5">
