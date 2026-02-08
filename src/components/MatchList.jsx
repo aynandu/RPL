@@ -74,9 +74,13 @@ const MatchCard = ({ match, onClick }) => {
                             // User specific request: "when 1st inning completed as per no more over card left"
                             // This implies we rely on innings1Overs.every(o => o.savedStats).
 
-                            const isFirstInningsDone = match.innings1Overs &&
+                            // Check if 1st Innings is complete OR 2nd innings has started
+                            // We now check if Team 2 has any overs or batting data
+                            const isSecondInningsStarted = (match.score.team2.overs > 0) || (match.secondInningsBatting && match.secondInningsBatting.length > 0);
+
+                            const isFirstInningsDone = (match.innings1Overs &&
                                 match.innings1Overs.length > 0 &&
-                                match.innings1Overs.every(o => o.savedStats);
+                                match.innings1Overs.every(o => o.savedStats)) || isSecondInningsStarted;
 
                             if (isFirstInningsDone && match.status !== 'completed') {
                                 const target = (match.score.team1.runs || 0) + 1;
@@ -90,11 +94,13 @@ const MatchCard = ({ match, onClick }) => {
                         })()}
                         {(() => {
                             // Show equation: "Need X runs in Y balls"
-                            // Condition: Live match, 1st innings done (target exists)
-                            const isFirstInningsDone = match.innings1Overs && match.innings1Overs.length > 0 && match.innings1Overs.every(o => o.savedStats);
+                            // Condition: Live match, 1st innings done (Target exists), and 2nd innings started
+                            const isSecondInningsStarted = (match.score.team2.overs > 0) || (match.secondInningsBatting && match.secondInningsBatting.length > 0);
+                            const isFirstInningsDone = (match.innings1Overs && match.innings1Overs.length > 0 && match.innings1Overs.every(o => o.savedStats)) || isSecondInningsStarted;
+
                             const t2Stats = match.score.team2;
 
-                            if (match.status === 'live' && isFirstInningsDone && t2Stats.overs > 0) {
+                            if (match.status === 'live' && isFirstInningsDone && isSecondInningsStarted) {
                                 const target = (match.score.team1.runs || 0) + 1;
                                 const runsNeeded = target - (t2Stats.runs || 0);
 
