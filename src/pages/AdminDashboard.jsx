@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { useUI } from '../context/UIContext';
-import { Plus, Trash2, Edit2, Upload } from 'lucide-react';
+import { Plus, Trash2, Edit2, Upload, RefreshCcw } from 'lucide-react';
 import ScoreUpdateForm from '../components/ScoreUpdateForm';
 import PointsTableEditor from '../components/PointsTableEditor';
 import TeamManager from '../components/TeamManager';
 import Footer from '../components/Footer';
 
 const AdminDashboard = () => {
-    const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle, resetData, stadiums, addStadium, deleteStadium, oversOptions, addOverOption, deleteOverOption, liveStreamUrl, setLiveStreamUrl, liveStreamUrl2, setLiveStreamUrl2, liveStreamUrl3, setLiveStreamUrl3, liveStreamUrl4, setLiveStreamUrl4, liveStreamUrl5, setLiveStreamUrl5, scrollingText, setScrollingText } = useGame();
+    const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle, resetData, stadiums, addStadium, deleteStadium, oversOptions, addOverOption, deleteOverOption, liveStreamUrl, setLiveStreamUrl, liveStreamUrl2, setLiveStreamUrl2, liveStreamUrl3, setLiveStreamUrl3, liveStreamUrl4, setLiveStreamUrl4, liveStreamUrl5, setLiveStreamUrl5, scrollingText, setScrollingText, forceRecalculatePoints } = useGame();
     const { toast } = useUI();
     const [editingMatch, setEditingMatch] = useState(null);
     const [newImageUrl, setNewImageUrl] = useState('');
@@ -445,6 +445,15 @@ const AdminDashboard = () => {
             {/* Points Table & Teams Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-8">
+                    <div className="flex gap-2 justify-end mb-2">
+                        <button
+                            onClick={forceRecalculatePoints}
+                            className="bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                            title="Recalculate Points from Scratch"
+                        >
+                            <RefreshCcw size={14} /> Refresh Standings
+                        </button>
+                    </div>
                     <PointsTableEditor />
                     <TeamManager />
                 </div>

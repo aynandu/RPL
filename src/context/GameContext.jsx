@@ -248,258 +248,268 @@ export const GameProvider = ({ children }) => {
                 body: JSON.stringify(updates)
             });
         } catch (err) { console.error("Update Match failed:", err); }
-    };
-
-    const addMatch = async (match) => {
-        // Optimistic
-        const maxId = matches.length > 0 ? Math.max(...matches.map(m => m.id)) : 0;
-        const newMatch = { ...match, id: maxId + 1 };
-        setMatches(prev => [...prev, newMatch]);
-
-        try {
-            await fetch(`${API_BASE}/matches`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newMatch)
-            });
-        } catch (err) { console.error("Add Match failed", err); }
-    };
-
-    const deleteMatch = async (id) => {
-        setMatches(prev => prev.filter(m => m.id !== id));
-        try {
-            await fetch(`${API_BASE}/matches/${id}`, { method: 'DELETE' });
-        } catch (err) { console.error("Delete Match failed", err); }
-    };
-
-    const updateImages = (newImages) => {
-        setImages(newImages);
-        updateSettings({ images: newImages });
-    };
-
-    const updatePointsTable = async (updatedTable) => {
-        setPointsTable(updatedTable);
-        try {
-            await fetch(`${API_BASE}/teams/batch`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedTable)
-            });
-        } catch (err) { console.error("Update Table failed", err); }
-    };
-
-    const deleteTeam = async (teamName) => {
-        setPointsTable(prev => prev.filter(t => t.team !== teamName));
-        try {
-            await fetch(`${API_BASE}/teams/${encodeURIComponent(teamName)}`, { method: 'DELETE' });
-        } catch (err) { console.error("Delete Team failed", err); }
-    };
-
-    const addPlayer = async (player) => {
-        const maxId = players.length > 0 ? Math.max(...players.map(p => p.id || 0)) : 0;
-        const newPlayer = { ...player, id: maxId + 1 };
-        setPlayers(prev => [...prev, newPlayer]);
-        try {
-            await fetch(`${API_BASE}/players`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newPlayer)
-            });
-        } catch (err) { console.error("Add Player failed", err); }
-    };
-
-    const updatePlayer = async (id, updates) => {
-        setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
-        try {
-            await fetch(`${API_BASE}/players/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updates)
-            });
-        } catch (err) { console.error("Update Player failed", err); }
-    };
-
-    const batchUpdatePlayers = async (updates) => {
-        // updates: [{ playerId, stats: { runs: 0, ... } }]
-        // Optimistic State Update
-        const updatedPlayers = players.map(p => {
-            const update = updates.find(u => u.playerId === p.id);
-            if (update) {
-                const s = update.stats;
-                return {
-                    ...p,
-                    matches: (p.matches || 0) + (s.matches || 0),
-                    runs: (p.runs || 0) + (s.runs || 0),
-                    balls: (p.balls || 0) + (s.balls || 0),
-                    fours: (p.fours || 0) + (s.fours || 0),
-                    sixes: (p.sixes || 0) + (s.sixes || 0),
-                    fifties: (p.fifties || 0) + (s.fifties || 0),
-                    hundreds: (p.hundreds || 0) + (s.hundreds || 0),
-                    overs: (Number(p.overs) || 0) + (Number(s.overs) || 0),
-                    maidens: (Number(p.maidens) || 0) + (Number(s.maidens) || 0),
-                    runsConceded: (Number(p.runsConceded) || 0) + (Number(s.runsConceded) || 0),
-                    wickets: (Number(p.wickets) || 0) + (Number(s.wickets) || 0),
-                    highestScore: Math.max(Number(p.highestScore) || 0, Number(s.highestScore) || 0)
-                };
+        const forceRecalculatePoints = () => {
+            if (matches.length > 0 && pointsTable.length > 0) {
+                const newTable = recalculateStandings(matches, pointsTable);
+                updatePointsTable(newTable);
+                toast.success("Points Table recalculated successfully!");
+            } else {
+                toast.error("Not enough data to recalculate.");
             }
-            return p;
-        });
-        setPlayers(updatedPlayers);
+        };
 
-        // Prepare payload for backend (Full player objects or partials? Backend expects full Objects for bulk update in my impl)
-        // Let's send the FULL updated player objects that changed
-        const changedPlayers = updatedPlayers.filter(p => updates.some(u => u.playerId === p.id));
-        try {
-            await fetch(`${API_BASE}/players/batch`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(changedPlayers)
+
+        const addMatch = async (match) => {
+            // Optimistic
+            const maxId = matches.length > 0 ? Math.max(...matches.map(m => m.id)) : 0;
+            const newMatch = { ...match, id: maxId + 1 };
+            setMatches(prev => [...prev, newMatch]);
+
+            try {
+                await fetch(`${API_BASE}/matches`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newMatch)
+                });
+            } catch (err) { console.error("Add Match failed", err); }
+        };
+
+        const deleteMatch = async (id) => {
+            setMatches(prev => prev.filter(m => m.id !== id));
+            try {
+                await fetch(`${API_BASE}/matches/${id}`, { method: 'DELETE' });
+            } catch (err) { console.error("Delete Match failed", err); }
+        };
+
+        const updateImages = (newImages) => {
+            setImages(newImages);
+            updateSettings({ images: newImages });
+        };
+
+        const updatePointsTable = async (updatedTable) => {
+            setPointsTable(updatedTable);
+            try {
+                await fetch(`${API_BASE}/teams/batch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedTable)
+                });
+            } catch (err) { console.error("Update Table failed", err); }
+        };
+
+        const deleteTeam = async (teamName) => {
+            setPointsTable(prev => prev.filter(t => t.team !== teamName));
+            try {
+                await fetch(`${API_BASE}/teams/${encodeURIComponent(teamName)}`, { method: 'DELETE' });
+            } catch (err) { console.error("Delete Team failed", err); }
+        };
+
+        const addPlayer = async (player) => {
+            const maxId = players.length > 0 ? Math.max(...players.map(p => p.id || 0)) : 0;
+            const newPlayer = { ...player, id: maxId + 1 };
+            setPlayers(prev => [...prev, newPlayer]);
+            try {
+                await fetch(`${API_BASE}/players`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newPlayer)
+                });
+            } catch (err) { console.error("Add Player failed", err); }
+        };
+
+        const updatePlayer = async (id, updates) => {
+            setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+            try {
+                await fetch(`${API_BASE}/players/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+            } catch (err) { console.error("Update Player failed", err); }
+        };
+
+        const batchUpdatePlayers = async (updates) => {
+            // updates: [{ playerId, stats: { runs: 0, ... } }]
+            // Optimistic State Update
+            const updatedPlayers = players.map(p => {
+                const update = updates.find(u => u.playerId === p.id);
+                if (update) {
+                    const s = update.stats;
+                    return {
+                        ...p,
+                        matches: (p.matches || 0) + (s.matches || 0),
+                        runs: (p.runs || 0) + (s.runs || 0),
+                        balls: (p.balls || 0) + (s.balls || 0),
+                        fours: (p.fours || 0) + (s.fours || 0),
+                        sixes: (p.sixes || 0) + (s.sixes || 0),
+                        fifties: (p.fifties || 0) + (s.fifties || 0),
+                        hundreds: (p.hundreds || 0) + (s.hundreds || 0),
+                        overs: (Number(p.overs) || 0) + (Number(s.overs) || 0),
+                        maidens: (Number(p.maidens) || 0) + (Number(s.maidens) || 0),
+                        runsConceded: (Number(p.runsConceded) || 0) + (Number(s.runsConceded) || 0),
+                        wickets: (Number(p.wickets) || 0) + (Number(s.wickets) || 0),
+                        highestScore: Math.max(Number(p.highestScore) || 0, Number(s.highestScore) || 0)
+                    };
+                }
+                return p;
             });
-        } catch (err) { console.error("Batch Update failed", err); }
-    };
+            setPlayers(updatedPlayers);
 
-    const deletePlayer = async (id) => {
-        setPlayers(prev => prev.filter(p => p.id !== id));
-        try {
-            await fetch(`${API_BASE}/players/${id}`, { method: 'DELETE' });
-        } catch (err) { console.error("Delete Player failed", err); }
-    };
+            // Prepare payload for backend (Full player objects or partials? Backend expects full Objects for bulk update in my impl)
+            // Let's send the FULL updated player objects that changed
+            const changedPlayers = updatedPlayers.filter(p => updates.some(u => u.playerId === p.id));
+            try {
+                await fetch(`${API_BASE}/players/batch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(changedPlayers)
+                });
+            } catch (err) { console.error("Batch Update failed", err); }
+        };
 
-    // Helper to update Settings
-    const updateSettings = async (newSettings) => {
-        try {
-            await fetch(`${API_BASE}/settings`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newSettings)
-            });
-        } catch (err) { console.error("Settings Update failed", err); }
-    };
+        const deletePlayer = async (id) => {
+            setPlayers(prev => prev.filter(p => p.id !== id));
+            try {
+                await fetch(`${API_BASE}/players/${id}`, { method: 'DELETE' });
+            } catch (err) { console.error("Delete Player failed", err); }
+        };
 
-    const addStadium = (stadium) => {
-        if (!stadiums.includes(stadium)) {
-            const newStadiums = [...stadiums, stadium];
+        // Helper to update Settings
+        const updateSettings = async (newSettings) => {
+            try {
+                await fetch(`${API_BASE}/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newSettings)
+                });
+            } catch (err) { console.error("Settings Update failed", err); }
+        };
+
+        const addStadium = (stadium) => {
+            if (!stadiums.includes(stadium)) {
+                const newStadiums = [...stadiums, stadium];
+                setStadiums(newStadiums);
+                updateSettings({ stadiums: newStadiums });
+            }
+        };
+
+        const deleteStadium = (stadium) => {
+            const newStadiums = stadiums.filter(s => s !== stadium);
             setStadiums(newStadiums);
             updateSettings({ stadiums: newStadiums });
-        }
-    };
+        };
 
-    const deleteStadium = (stadium) => {
-        const newStadiums = stadiums.filter(s => s !== stadium);
-        setStadiums(newStadiums);
-        updateSettings({ stadiums: newStadiums });
-    };
+        const addOverOption = (over) => {
+            if (!oversOptions.includes(over)) {
+                const newOpts = [...oversOptions, over];
+                setOversOptions(newOpts);
+                updateSettings({ oversOptions: newOpts });
+            }
+        };
 
-    const addOverOption = (over) => {
-        if (!oversOptions.includes(over)) {
-            const newOpts = [...oversOptions, over];
+        const deleteOverOption = (over) => {
+            const newOpts = oversOptions.filter(o => o !== over);
             setOversOptions(newOpts);
             updateSettings({ oversOptions: newOpts });
-        }
-    };
+        };
 
-    const deleteOverOption = (over) => {
-        const newOpts = oversOptions.filter(o => o !== over);
-        setOversOptions(newOpts);
-        updateSettings({ oversOptions: newOpts });
-    };
+        // Helper to save all streams as one packed string
+        const savePackedStreams = (u1, u2, u3, u4, u5) => {
+            const packed = [u1, u2, u3, u4, u5].join('|');
+            updateSettings({ liveStreamUrl: packed });
+        };
 
-    // Helper to save all streams as one packed string
-    const savePackedStreams = (u1, u2, u3, u4, u5) => {
-        const packed = [u1, u2, u3, u4, u5].join('|');
-        updateSettings({ liveStreamUrl: packed });
-    };
-
-    const wrappedSetLiveStreamMs1 = (url) => {
-        setLiveStreamUrl(url);
-        savePackedStreams(url, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, liveStreamUrl5);
-    };
-    const wrappedSetLiveStreamMs2 = (url) => {
-        setLiveStreamUrl2(url);
-        savePackedStreams(liveStreamUrl, url, liveStreamUrl3, liveStreamUrl4, liveStreamUrl5);
-    };
-    const wrappedSetLiveStreamMs3 = (url) => {
-        setLiveStreamUrl3(url);
-        savePackedStreams(liveStreamUrl, liveStreamUrl2, url, liveStreamUrl4, liveStreamUrl5);
-    };
-    const wrappedSetLiveStreamMs4 = (url) => {
-        setLiveStreamUrl4(url);
-        savePackedStreams(liveStreamUrl, liveStreamUrl2, liveStreamUrl3, url, liveStreamUrl5);
-    };
-    const wrappedSetLiveStreamMs5 = (url) => {
-        setLiveStreamUrl5(url);
-        savePackedStreams(liveStreamUrl, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, url);
-    };
-    const wrappedSetTournamentTitle = (title) => {
-        setTournamentTitle(title);
-        updateSettings({ tournamentTitle: title });
-    };
-    const wrappedSetScrollingText = (text) => {
-        setScrollingText(text);
-        updateSettings({ scrollingText: text });
-    };
+        const wrappedSetLiveStreamMs1 = (url) => {
+            setLiveStreamUrl(url);
+            savePackedStreams(url, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, liveStreamUrl5);
+        };
+        const wrappedSetLiveStreamMs2 = (url) => {
+            setLiveStreamUrl2(url);
+            savePackedStreams(liveStreamUrl, url, liveStreamUrl3, liveStreamUrl4, liveStreamUrl5);
+        };
+        const wrappedSetLiveStreamMs3 = (url) => {
+            setLiveStreamUrl3(url);
+            savePackedStreams(liveStreamUrl, liveStreamUrl2, url, liveStreamUrl4, liveStreamUrl5);
+        };
+        const wrappedSetLiveStreamMs4 = (url) => {
+            setLiveStreamUrl4(url);
+            savePackedStreams(liveStreamUrl, liveStreamUrl2, liveStreamUrl3, url, liveStreamUrl5);
+        };
+        const wrappedSetLiveStreamMs5 = (url) => {
+            setLiveStreamUrl5(url);
+            savePackedStreams(liveStreamUrl, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, url);
+        };
+        const wrappedSetTournamentTitle = (title) => {
+            setTournamentTitle(title);
+            updateSettings({ tournamentTitle: title });
+        };
+        const wrappedSetScrollingText = (text) => {
+            setScrollingText(text);
+            updateSettings({ scrollingText: text });
+        };
 
 
-    const resetData = async () => {
-        setMatches([]);
-        setPointsTable([]);
-        setPlayers([]);
-        setImages(INITIAL_IMAGES); // Force client-side default immediately
-        try {
-            await fetch(`${API_BASE}/wipe`, { method: 'DELETE' });
-            // FORCE UPDATE BACKEND with correct defaults immediately after wipe
-            // This prevents the backend from serving its own (old) defaults on next fetch
-            await updateSettings({ images: INITIAL_IMAGES });
-            toast.success("All data wiped. Images reset to Cloudinary defaults.");
-        } catch (err) { console.error("Wipe failed", err); }
+        const resetData = async () => {
+            setMatches([]);
+            setPointsTable([]);
+            setPlayers([]);
+            setImages(INITIAL_IMAGES); // Force client-side default immediately
+            try {
+                await fetch(`${API_BASE}/wipe`, { method: 'DELETE' });
+                // FORCE UPDATE BACKEND with correct defaults immediately after wipe
+                // This prevents the backend from serving its own (old) defaults on next fetch
+                await updateSettings({ images: INITIAL_IMAGES });
+                toast.success("All data wiped. Images reset to Cloudinary defaults.");
+            } catch (err) { console.error("Wipe failed", err); }
+        };
+
+        // Derived state
+        const allTeams = pointsTable.map(team => team.team);
+
+        return (
+            <GameContext.Provider value={{
+                matches,
+                images,
+                isAdmin,
+                login,
+                logout,
+                updateMatch,
+                addMatch,
+                deleteMatch,
+                updateImages,
+                pointsTable,
+                updatePointsTable,
+                deleteTeam,
+                allTeams,
+                players,
+                addPlayer,
+                updatePlayer,
+                batchUpdatePlayers,
+                deletePlayer,
+                tournamentTitle,
+                updateTournamentTitle: wrappedSetTournamentTitle,
+                stadiums,
+                addStadium,
+                deleteStadium,
+                oversOptions,
+                addOverOption,
+                deleteOverOption,
+                liveStreamUrl,
+                setLiveStreamUrl: wrappedSetLiveStreamMs1,
+                liveStreamUrl2,
+                setLiveStreamUrl2: wrappedSetLiveStreamMs2,
+                liveStreamUrl3,
+                setLiveStreamUrl3: wrappedSetLiveStreamMs3,
+                liveStreamUrl4,
+                setLiveStreamUrl4: wrappedSetLiveStreamMs4,
+                liveStreamUrl5,
+                setLiveStreamUrl5: wrappedSetLiveStreamMs5,
+                scrollingText,
+                setScrollingText: wrappedSetScrollingText,
+                resetData,
+                forceRecalculatePoints
+            }}>
+                {children}
+            </GameContext.Provider>
+        );
     };
-
-    // Derived state
-    const allTeams = pointsTable.map(team => team.team);
-
-    return (
-        <GameContext.Provider value={{
-            matches,
-            images,
-            isAdmin,
-            login,
-            logout,
-            updateMatch,
-            addMatch,
-            deleteMatch,
-            updateImages,
-            pointsTable,
-            updatePointsTable,
-            deleteTeam,
-            allTeams,
-            players,
-            addPlayer,
-            updatePlayer,
-            batchUpdatePlayers,
-            deletePlayer,
-            tournamentTitle,
-            updateTournamentTitle: wrappedSetTournamentTitle,
-            stadiums,
-            addStadium,
-            deleteStadium,
-            oversOptions,
-            addOverOption,
-            deleteOverOption,
-            liveStreamUrl,
-            setLiveStreamUrl: wrappedSetLiveStreamMs1,
-            liveStreamUrl2,
-            setLiveStreamUrl2: wrappedSetLiveStreamMs2,
-            liveStreamUrl3,
-            setLiveStreamUrl3: wrappedSetLiveStreamMs3,
-            liveStreamUrl4,
-            setLiveStreamUrl4: wrappedSetLiveStreamMs4,
-            liveStreamUrl5,
-            setLiveStreamUrl5: wrappedSetLiveStreamMs5,
-            scrollingText,
-            setScrollingText: wrappedSetScrollingText,
-            resetData
-        }}>
-            {children}
-        </GameContext.Provider>
-    );
-};
