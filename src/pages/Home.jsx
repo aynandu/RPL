@@ -16,30 +16,51 @@ const Home = () => {
     // Derived state: Always get the latest match data from context
     const selectedMatch = selectedMatchId ? matches.find(m => m.id === selectedMatchId) : null;
 
-    // Helper to extract YouTube Embed ID
-    const getEmbedUrl = (url) => {
+    // Helper to extract Stream Info (YouTube or Instagram)
+    const getStreamInfo = (url) => {
         if (!url) return null;
         try {
-            // Handle standard watch URLs, short URLs, and embed URLs
-            let videoId = null;
-            if (url.includes('youtube.com/watch')) {
-                videoId = new URL(url).searchParams.get('v');
-            } else if (url.includes('youtu.be/')) {
-                videoId = url.split('youtu.be/')[1]?.split('?')[0];
-            } else if (url.includes('youtube.com/embed/')) {
-                videoId = url.split('embed/')[1]?.split('?')[0];
+            // 1. YouTube
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                let videoId = null;
+                if (url.includes('youtube.com/watch')) {
+                    videoId = new URL(url).searchParams.get('v');
+                } else if (url.includes('youtu.be/')) {
+                    videoId = url.split('youtu.be/')[1]?.split('?')[0];
+                } else if (url.includes('youtube.com/embed/')) {
+                    videoId = url.split('embed/')[1]?.split('?')[0];
+                } else if (url.includes('youtube.com/live/')) {
+                    videoId = url.split('live/')[1]?.split('?')[0];
+                }
+                return videoId ? { type: 'youtube', src: `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1` } : null;
             }
-            return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+
+            // 2. Instagram
+            if (url.includes('instagram.com')) {
+                // Handle /p/, /reel/, /tv/
+                // Default regex to capture path
+                // format: https://www.instagram.com/p/CODE/ or https://www.instagram.com/reel/CODE/
+                const parts = url.split('/');
+                const typeIndex = parts.findIndex(p => p === 'p' || p === 'reel' || p === 'tv');
+                if (typeIndex !== -1 && parts[typeIndex + 1]) {
+                    const code = parts[typeIndex + 1];
+                    return { type: 'instagram', src: `https://www.instagram.com/${parts[typeIndex]}/${code}/embed` };
+                }
+                return null;
+            }
         } catch (e) {
             return null;
         }
+        return null; // unsupported
     };
 
-    const embedUrl = getEmbedUrl(liveStreamUrl);
-    const embedUrl2 = getEmbedUrl(liveStreamUrl2);
-    const embedUrl3 = getEmbedUrl(liveStreamUrl3);
-    const embedUrl4 = getEmbedUrl(liveStreamUrl4);
-    const embedUrl5 = getEmbedUrl(liveStreamUrl5);
+    const streams = [
+        getStreamInfo(liveStreamUrl),
+        getStreamInfo(liveStreamUrl2),
+        getStreamInfo(liveStreamUrl3),
+        getStreamInfo(liveStreamUrl4),
+        getStreamInfo(liveStreamUrl5)
+    ];
 
     return (
         <div className="min-h-screen pb-10">
@@ -80,13 +101,13 @@ const Home = () => {
                     {/* Right Column: Sidebar (35%) */}
                     <div className="w-full md:w-[35%]">
                         {/* Live Stream Players (No Headers/Labels as requested) */}
-                        {[embedUrl, embedUrl2, embedUrl3, embedUrl4, embedUrl5].map((url, index) => url && (
+                        {streams.map((stream, index) => stream && (
                             <div key={index} className="glass-card overflow-hidden mb-4 border-l-4 border-l-cyan-500 shadow-xl shadow-cyan-500/10 animate-fade-in group">
-                                <div className="aspect-video w-full bg-black relative">
+                                <div className={`w-full bg-black relative ${stream.type === 'instagram' ? 'h-[500px]' : 'aspect-video'}`}>
                                     <iframe
                                         width="100%"
                                         height="100%"
-                                        src={`${url}?autoplay=1&mute=1&rel=0`}
+                                        src={stream.src}
                                         title={`Live Stream ${index + 1}`}
                                         frameBorder="0"
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

@@ -291,7 +291,7 @@ const AdminDashboard = () => {
                                     type="text"
                                     value={liveStreamUrl}
                                     onChange={(e) => setLiveStreamUrl(e.target.value)}
-                                    placeholder="Paste YouTube URL 1"
+                                    placeholder="Paste YouTube or Instagram URL 1"
                                     className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
                                 />
                                 <button
@@ -312,7 +312,7 @@ const AdminDashboard = () => {
                                     type="text"
                                     value={liveStreamUrl2}
                                     onChange={(e) => setLiveStreamUrl2(e.target.value)}
-                                    placeholder="Paste YouTube URL 2"
+                                    placeholder="Paste YouTube or Instagram URL 2"
                                     className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
                                 />
                                 <button
@@ -333,7 +333,7 @@ const AdminDashboard = () => {
                                     type="text"
                                     value={liveStreamUrl3}
                                     onChange={(e) => setLiveStreamUrl3(e.target.value)}
-                                    placeholder="Paste YouTube URL 3"
+                                    placeholder="Paste YouTube or Instagram URL 3"
                                     className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
                                 />
                                 <button
@@ -354,7 +354,7 @@ const AdminDashboard = () => {
                                     type="text"
                                     value={liveStreamUrl4}
                                     onChange={(e) => setLiveStreamUrl4(e.target.value)}
-                                    placeholder="Paste YouTube URL 4"
+                                    placeholder="Paste YouTube or Instagram URL 4"
                                     className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
                                 />
                                 <button
@@ -375,7 +375,7 @@ const AdminDashboard = () => {
                                     type="text"
                                     value={liveStreamUrl5}
                                     onChange={(e) => setLiveStreamUrl5(e.target.value)}
-                                    placeholder="Paste YouTube URL 5"
+                                    placeholder="Paste YouTube or Instagram URL 5"
                                     className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
                                 />
                                 <button
