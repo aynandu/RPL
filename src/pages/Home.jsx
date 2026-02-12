@@ -183,8 +183,8 @@ const Home = () => {
                                                     {/* Center Status / Equation */}
                                                     <div className="flex-1 flex items-center justify-center h-full relative z-10 px-2">
                                                         {overlayText ? (
-                                                            <div className={`px-3 py-1 rounded bg-black/40 border border-white/5 backdrop-blur-sm`}>
-                                                                <span className={`text-[10px] md:text-xs font-black uppercase tracking-widest ${status === 'live' ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
+                                                            <div className={`px-2 py-0.5 rounded bg-black/40 border border-white/5 backdrop-blur-sm max-w-[150px] flex justify-center`}>
+                                                                <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-wide leading-tight whitespace-normal break-words text-center ${status === 'live' ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
                                                                     {overlayText}
                                                                 </span>
                                                             </div>
