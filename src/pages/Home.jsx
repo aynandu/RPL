@@ -10,7 +10,7 @@ import Footer from '../components/Footer';
 import { useGame } from '../context/GameContext';
 
 const Home = () => {
-    const { matches, liveStreamUrl, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, liveStreamUrl5 } = useGame();
+    const { matches, liveStreamUrl, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, liveStreamUrl5, liveStreamMatchId } = useGame();
     const [selectedMatchId, setSelectedMatchId] = useState(null);
 
     // Derived state: Always get the latest match data from context
@@ -102,7 +102,7 @@ const Home = () => {
                     <div className="w-full md:w-[35%]">
                         {/* Live Stream Players (No Headers/Labels as requested) */}
                         {streams.map((stream, index) => stream && (
-                            <div key={index} className="glass-card overflow-hidden mb-4 border-l-4 border-l-cyan-500 shadow-xl shadow-cyan-500/10 animate-fade-in group">
+                            <div key={index} className="glass-card overflow-hidden mb-4 border-l-4 border-l-cyan-500 shadow-xl shadow-cyan-500/10 animate-fade-in group relative">
                                 <div className={`w-full bg-black relative ${stream.type === 'instagram' ? 'h-[500px]' : 'aspect-video'}`}>
                                     <iframe
                                         width="100%"
@@ -114,6 +114,63 @@ const Home = () => {
                                         allowFullScreen
                                         className="absolute inset-0 w-full h-full"
                                     ></iframe>
+
+                                    {/* Score Overlay for Stream 1 (index 0) */}
+                                    {index === 0 && liveStreamMatchId && (() => {
+                                        const overlayMatch = matches.find(m => m.id === parseInt(liveStreamMatchId));
+                                        if (!overlayMatch) return null;
+
+                                        const { team1, team2, score, status, oversChoosen } = overlayMatch;
+                                        const t1s = score.team1;
+                                        const t2s = score.team2;
+
+                                        // Simple Equation Logic
+                                        let equation = "";
+                                        const isSecondInnings = t2s.runs > 0 || t2s.balls > 0 || t2s.overs > 0 || overlayMatch.batting === team2;
+
+                                        if (status === 'live' && isSecondInnings) {
+                                            const target = t1s.runs + 1;
+                                            const runsNeed = Math.max(0, target - t2s.runs);
+                                            // Balls Remaining
+                                            const maxOvers = parseInt(oversChoosen, 10) || 6; // Default to 6 if missing
+                                            const totalBalls = maxOvers * 6;
+                                            const ballsBowled = (Math.floor(t2s.overs) * 6) + Math.round((t2s.overs % 1) * 10);
+                                            const ballsLeft = Math.max(0, totalBalls - ballsBowled);
+                                            equation = `Need ${runsNeed} off ${ballsLeft} balls`;
+                                            if (t2s.runs >= target) equation = `${team2} Wins!`;
+                                            if (t2s.wickets >= 10 || ballsLeft === 0 && runsNeed > 0) equation = `${team1} Wins!`;
+                                        } else if (status === 'completed') {
+                                            if (t1s.runs > t2s.runs) equation = `${team1} Won`;
+                                            else if (t2s.runs > t1s.runs) equation = `${team2} Won`;
+                                            else equation = "Match Tied";
+                                        }
+
+                                        return (
+                                            <div className="absolute top-4 left-4 right-4 bg-black/70 backdrop-blur-sm p-3 rounded-xl border border-white/10 text-white shadow-lg animate-fade-in pointer-events-none">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-yellow-400 text-sm whitespace-nowrap">{team1}</span>
+                                                        <span className="font-mono text-xs font-bold">{t1s.runs}/{t1s.wickets} <span className="text-gray-400 font-normal">({t1s.overs})</span></span>
+                                                    </div>
+                                                    <div className="h-8 w-px bg-white/20 mx-2"></div>
+                                                    <div className="flex flex-col text-right">
+                                                        <span className="font-bold text-cyan-400 text-sm whitespace-nowrap">{team2}</span>
+                                                        <span className="font-mono text-xs font-bold">{t2s.runs}/{t2s.wickets} <span className="text-gray-400 font-normal">({t2s.overs})</span></span>
+                                                    </div>
+                                                </div>
+                                                {equation && (
+                                                    <div className="mt-1 pt-1 border-t border-white/10 text-center">
+                                                        <span className="text-xs font-bold text-green-400 uppercase tracking-wide animate-pulse">{equation}</span>
+                                                    </div>
+                                                )}
+                                                {!equation && status === 'live' && (
+                                                    <div className="mt-1 pt-1 border-t border-white/10 text-center">
+                                                        <span className="text-[10px] uppercase tracking-widest text-gray-400">1st Innings</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         ))}

@@ -8,7 +8,7 @@ import TeamManager from '../components/TeamManager';
 import Footer from '../components/Footer';
 
 const AdminDashboard = () => {
-    const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle, resetData, stadiums, addStadium, deleteStadium, oversOptions, addOverOption, deleteOverOption, liveStreamUrl, setLiveStreamUrl, liveStreamUrl2, setLiveStreamUrl2, liveStreamUrl3, setLiveStreamUrl3, liveStreamUrl4, setLiveStreamUrl4, liveStreamUrl5, setLiveStreamUrl5, scrollingText, setScrollingText, forceRecalculatePoints } = useGame();
+    const { matches, images, addMatch, deleteMatch, updateImages, tournamentTitle, updateTournamentTitle, resetData, stadiums, addStadium, deleteStadium, oversOptions, addOverOption, deleteOverOption, liveStreamUrl, setLiveStreamUrl, liveStreamUrl2, setLiveStreamUrl2, liveStreamUrl3, setLiveStreamUrl3, liveStreamUrl4, setLiveStreamUrl4, liveStreamUrl5, setLiveStreamUrl5, liveStreamMatchId, setLiveStreamMatchId, scrollingText, setScrollingText, forceRecalculatePoints } = useGame();
     const { toast } = useUI();
     const [editingMatch, setEditingMatch] = useState(null);
     const [newImageUrl, setNewImageUrl] = useState('');
@@ -292,12 +292,20 @@ const AdminDashboard = () => {
                                     value={liveStreamUrl}
                                     onChange={(e) => setLiveStreamUrl(e.target.value)}
                                     placeholder="Paste YouTube or Instagram URL 1"
-                                    className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
+                                    className="flex-[2] glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
+                                />
+                                <input
+                                    type="number"
+                                    value={liveStreamMatchId}
+                                    onChange={(e) => setLiveStreamMatchId(e.target.value)}
+                                    placeholder="Match ID (Overlay)"
+                                    className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600 text-center"
+                                    title="Enter Match ID to show score overlay"
                                 />
                                 <button
-                                    onClick={() => setLiveStreamUrl('')}
+                                    onClick={() => { setLiveStreamUrl(''); setLiveStreamMatchId(''); }}
                                     className="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
-                                    title="Clear Stream"
+                                    title="Clear Stream & Overlay"
                                 >
                                     <Trash2 size={18} />
                                 </button>

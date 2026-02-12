@@ -23,6 +23,7 @@ export const GameProvider = ({ children }) => {
     const [liveStreamUrl3, setLiveStreamUrl3] = useState('');
     const [liveStreamUrl4, setLiveStreamUrl4] = useState('');
     const [liveStreamUrl5, setLiveStreamUrl5] = useState('');
+    const [liveStreamMatchId, setLiveStreamMatchId] = useState(''); // New: Match ID for Overlay
     const [scrollingText, setScrollingText] = useState('');
     const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('rpl_is_admin') === 'true'); // Keep auth local for now
 
@@ -65,6 +66,7 @@ export const GameProvider = ({ children }) => {
                         // Legacy fallback
                         setLiveStreamUrl2(settingsData.liveStreamUrl2);
                     }
+                    if (settingsData.liveStreamMatchId) setLiveStreamMatchId(settingsData.liveStreamMatchId); // Restore Match ID
                     if (settingsData.images && settingsData.images.length > 0) {
                         setImages(settingsData.images);
                     }
@@ -598,6 +600,13 @@ export const GameProvider = ({ children }) => {
         setLiveStreamUrl5(url);
         savePackedStreams(liveStreamUrl, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, url);
     };
+
+    // Wrapper for Match ID Setting
+    const wrappedSetLiveStreamMatchId = (id) => {
+        setLiveStreamMatchId(id);
+        updateSettings({ liveStreamMatchId: id });
+    };
+
     const wrappedSetTournamentTitle = (title) => {
         setTournamentTitle(title);
         updateSettings({ tournamentTitle: title });
@@ -613,11 +622,12 @@ export const GameProvider = ({ children }) => {
         setPointsTable([]);
         setPlayers([]);
         setImages(INITIAL_IMAGES); // Force client-side default immediately
+        setLiveStreamMatchId(''); // Reset Overlay
         try {
             await fetch(`${API_BASE}/wipe`, { method: 'DELETE' });
             // FORCE UPDATE BACKEND with correct defaults immediately after wipe
             // This prevents the backend from serving its own (old) defaults on next fetch
-            await updateSettings({ images: INITIAL_IMAGES });
+            await updateSettings({ images: INITIAL_IMAGES, liveStreamMatchId: '' });
             toast.success("All data wiped. Images reset to Cloudinary defaults.");
         } catch (err) { console.error("Wipe failed", err); }
     };
@@ -663,6 +673,8 @@ export const GameProvider = ({ children }) => {
             setLiveStreamUrl4: wrappedSetLiveStreamMs4,
             liveStreamUrl5,
             setLiveStreamUrl5: wrappedSetLiveStreamMs5,
+            liveStreamMatchId,
+            setLiveStreamMatchId: wrappedSetLiveStreamMatchId,
             scrollingText,
             setScrollingText: wrappedSetScrollingText,
             resetData,
