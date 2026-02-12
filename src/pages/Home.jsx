@@ -162,30 +162,53 @@ const Home = () => {
                                         }
 
                                         return (
-                                            <div className="absolute bottom-1 left-2 right-2 bg-black/80 backdrop-blur-md p-1 rounded-md border border-white/10 text-white shadow-lg animate-fade-in pointer-events-none flex items-center justify-between">
-                                                {/* Team 1 */}
-                                                <div className="flex flex-col items-start min-w-[30%]">
-                                                    <span className="font-bold text-yellow-400 text-[9px] truncate max-w-[50px] md:max-w-none leading-none mb-0.5">{team1}</span>
-                                                    <span className="font-mono text-[9px] font-bold leading-none">{t1s.runs}/{t1s.wickets} <span className="text-gray-400 font-normal text-[7px]">({t1s.overs})</span></span>
-                                                </div>
+                                            <div className="absolute bottom-4 left-4 right-4 animate-fade-in pointer-events-none">
+                                                {/* Broadcast Style Overlay Container */}
+                                                <div className="flex items-center justify-between bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-t-2 border-yellow-500 shadow-2xl rounded-lg overflow-hidden relative h-12">
 
-                                                {/* Center Status / Equation */}
-                                                <div className="flex-1 px-1 text-center border-x border-white/10 mx-1 flex items-center justify-center">
-                                                    {overlayText ? (
-                                                        <span className={`text-[7px] md:text-[9px] font-bold uppercase tracking-wide leading-none ${status === 'live' ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
-                                                            {overlayText}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[7px] text-gray-400 uppercase tracking-widest leading-none">
-                                                            {status === 'live' ? '1st Innings' : status}
-                                                        </span>
-                                                    )}
-                                                </div>
+                                                    {/* Background Pattern/Texture (Optional) */}
+                                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
 
-                                                {/* Team 2 */}
-                                                <div className="flex flex-col items-end min-w-[30%]">
-                                                    <span className="font-bold text-cyan-400 text-[9px] truncate max-w-[50px] md:max-w-none leading-none mb-0.5">{team2}</span>
-                                                    <span className="font-mono text-[9px] font-bold leading-none">{t2s.runs}/{t2s.wickets} <span className="text-gray-400 font-normal text-[7px]">({t2s.overs})</span></span>
+                                                    {/* Team 1 Section (Left) */}
+                                                    <div className="flex items-center h-full pl-3 pr-4 bg-gradient-to-r from-blue-900/80 to-transparent relative z-10 min-w-[30%]">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-yellow-400 font-black text-xs uppercase tracking-wider shadow-black drop-shadow-md leading-none mb-0.5">{team1}</span>
+                                                            <div className="flex items-baseline gap-1">
+                                                                <span className="text-white font-mono font-bold text-lg leading-none shadow-black drop-shadow-lg">{t1s.runs}/{t1s.wickets}</span>
+                                                                <span className="text-gray-400 text-[10px] font-bold">({t1s.overs})</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Center Status / Equation */}
+                                                    <div className="flex-1 flex items-center justify-center h-full relative z-10 px-2">
+                                                        {overlayText ? (
+                                                            <div className={`px-3 py-1 rounded bg-black/40 border border-white/5 backdrop-blur-sm`}>
+                                                                <span className={`text-[10px] md:text-xs font-black uppercase tracking-widest ${status === 'live' ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
+                                                                    {overlayText}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest bg-black/30 px-2 py-0.5 rounded">
+                                                                {status === 'live' ? '1st Innings' : status}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Team 2 Section (Right) */}
+                                                    <div className="flex items-center justify-end h-full pr-3 pl-4 bg-gradient-to-l from-purple-900/80 to-transparent relative z-10 min-w-[30%] text-right">
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-cyan-400 font-black text-xs uppercase tracking-wider shadow-black drop-shadow-md leading-none mb-0.5">{team2}</span>
+                                                            <div className="flex items-baseline gap-1 justify-end">
+                                                                <span className="text-gray-400 text-[10px] font-bold">({t2s.overs})</span>
+                                                                <span className="text-white font-mono font-bold text-lg leading-none shadow-black drop-shadow-lg">{t2s.runs}/{t2s.wickets}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Decorative Divider Lines */}
+                                                    <div className="absolute left-[30%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+                                                    <div className="absolute right-[30%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
                                                 </div>
                                             </div>
                                         );
