@@ -220,12 +220,11 @@ export const GameProvider = ({ children }) => {
     };
 
     const updateMatch = async (id, updates) => {
-        // Optimistic Update
-        let updatedMatches = [];
-        setMatches(prev => {
-            updatedMatches = prev.map(m => m.id === id ? { ...m, ...updates } : m);
-            return updatedMatches;
-        });
+        // Optimistic Update: Calculate the new state explicitly first
+        const updatedMatches = matches.map(m => m.id === id ? { ...m, ...updates } : m);
+
+        // Update state
+        setMatches(updatedMatches);
 
         // Trigger Points Table Recalculation if status is 'completed' or changed
         // We just run it always on match update to be safe and simple (re-syncs everything)
