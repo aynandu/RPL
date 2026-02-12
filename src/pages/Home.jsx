@@ -162,21 +162,21 @@ const Home = () => {
                                         }
 
                                         return (
-                                            <div className="absolute bottom-2 left-2 right-2 bg-black/80 backdrop-blur-md p-1.5 rounded-lg border border-white/10 text-white shadow-lg animate-fade-in pointer-events-none flex items-center justify-between">
+                                            <div className="absolute bottom-1 left-2 right-2 bg-black/80 backdrop-blur-md p-1 rounded-md border border-white/10 text-white shadow-lg animate-fade-in pointer-events-none flex items-center justify-between">
                                                 {/* Team 1 */}
                                                 <div className="flex flex-col items-start min-w-[30%]">
-                                                    <span className="font-bold text-yellow-400 text-[10px] truncate max-w-[60px] md:max-w-none">{team1}</span>
-                                                    <span className="font-mono text-[10px] font-bold leading-tight">{t1s.runs}/{t1s.wickets} <span className="text-gray-400 font-normal text-[8px]">({t1s.overs})</span></span>
+                                                    <span className="font-bold text-yellow-400 text-[9px] truncate max-w-[50px] md:max-w-none leading-none mb-0.5">{team1}</span>
+                                                    <span className="font-mono text-[9px] font-bold leading-none">{t1s.runs}/{t1s.wickets} <span className="text-gray-400 font-normal text-[7px]">({t1s.overs})</span></span>
                                                 </div>
 
                                                 {/* Center Status / Equation */}
-                                                <div className="flex-1 px-1 text-center border-x border-white/10 mx-1">
+                                                <div className="flex-1 px-1 text-center border-x border-white/10 mx-1 flex items-center justify-center">
                                                     {overlayText ? (
-                                                        <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-wide ${status === 'live' ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
+                                                        <span className={`text-[7px] md:text-[9px] font-bold uppercase tracking-wide leading-none ${status === 'live' ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
                                                             {overlayText}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-[8px] text-gray-400 uppercase tracking-widest">
+                                                        <span className="text-[7px] text-gray-400 uppercase tracking-widest leading-none">
                                                             {status === 'live' ? '1st Innings' : status}
                                                         </span>
                                                     )}
@@ -184,8 +184,8 @@ const Home = () => {
 
                                                 {/* Team 2 */}
                                                 <div className="flex flex-col items-end min-w-[30%]">
-                                                    <span className="font-bold text-cyan-400 text-[10px] truncate max-w-[60px] md:max-w-none">{team2}</span>
-                                                    <span className="font-mono text-[10px] font-bold leading-tight">{t2s.runs}/{t2s.wickets} <span className="text-gray-400 font-normal text-[8px]">({t2s.overs})</span></span>
+                                                    <span className="font-bold text-cyan-400 text-[9px] truncate max-w-[50px] md:max-w-none leading-none mb-0.5">{team2}</span>
+                                                    <span className="font-mono text-[9px] font-bold leading-none">{t2s.runs}/{t2s.wickets} <span className="text-gray-400 font-normal text-[7px]">({t2s.overs})</span></span>
                                                 </div>
                                             </div>
                                         );
