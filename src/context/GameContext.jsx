@@ -343,7 +343,6 @@ export const GameProvider = ({ children }) => {
 
             processBatting(m.batting, activeTeam1);
             processBatting(m.secondInningsBatting, activeTeam2);
-            processBowling(m.bowling, activeTeam2); // Team 2 batted, so Team 1 bowled (Wait, m.bowling is usually first innings bowling)
             // In ScoreUpdateForm: 
             // Tab 1 (Team 1 Batting): Bowling data is Team 2 bowlers.
             // Tab 2 (Team 2 Batting): Bowling data is Team 1 bowlers.
