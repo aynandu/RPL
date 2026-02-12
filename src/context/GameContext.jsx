@@ -341,15 +341,26 @@ export const GameProvider = ({ children }) => {
                 });
             };
 
-            processBatting(m.batting, activeTeam1);
-            processBatting(m.secondInningsBatting, activeTeam2);
-            // In ScoreUpdateForm: 
-            // Tab 1 (Team 1 Batting): Bowling data is Team 2 bowlers.
-            // Tab 2 (Team 2 Batting): Bowling data is Team 1 bowlers.
-            // So m.bowling = Team 2 bowlers (bowling to Team 1)
-            // m.secondInningsBowling = Team 1 bowlers (bowling to Team 2)
-            processBowling(m.bowling, activeTeam2);
-            processBowling(m.secondInningsBowling, activeTeam1);
+            // Process Batting
+            if (m.batting) processBatting(m.batting, activeTeam1);
+            if (m.secondInningsBatting) processBatting(m.secondInningsBatting, activeTeam2);
+
+            // Process Bowling
+            // Ensure we don't process the same array twice if they are accidentally aliased
+            const bowling1 = m.bowling || [];
+            const bowling2 = m.secondInningsBowling || [];
+
+            processBowling(bowling1, activeTeam2);
+
+            // Only process second innings if it's a different array or different content (simplified check by ref equality for now, 
+            // but for safety we trust they should be different lists for different teams)
+            if (bowling2 !== bowling1) {
+                processBowling(bowling2, activeTeam1);
+            } else if (bowling2.length > 0) {
+                // If they ARE the same array reference and non-empty, it implies data corruption where both innings point to same data.
+                // In that unlikely case, we should probably NOT process it twice.
+                console.warn(`Match ${m.id}: bowling and secondInningsBowling are the same reference! Skipping duplicate processing.`);
+            }
 
             // Increment Matches Played
             playersInMatch.forEach(id => {
