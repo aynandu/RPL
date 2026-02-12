@@ -247,6 +247,19 @@ export const GameProvider = ({ children }) => {
             // To avoid complexity, we'll just fire-and-forget the table update via the helper 
             // which handles both state and API.
             updatePointsTable(newTable);
+
+            // 3. Trigger Player Stats Recalculation (AUTOMATIC UPDATE)
+            if (players.length > 0) {
+                const newPlayers = recalculatePlayerStats(updatedMatches, players);
+                setPlayers(newPlayers); // Optimistic
+                // Persist to backend
+                // We use the same logic as forceRecalculatePoints
+                fetch(`${API_BASE}/players/batch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newPlayers)
+                }).catch(err => console.error("Auto-update Player Stats failed", err));
+            }
         }
 
         try {
