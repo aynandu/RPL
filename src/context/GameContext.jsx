@@ -361,10 +361,14 @@ export const GameProvider = ({ children }) => {
     };
 
     const forceRecalculatePoints = async () => {
-        if (matches.length > 0 && pointsTable.length > 0) {
+        // If matches is empty or no matches completed, the functions below naturally reset stats to 0.
+        // So we allow running as long as we have Teams OR Players to update.
+        if (pointsTable.length > 0 || players.length > 0) {
             // 1. Points Table
-            const newTable = recalculateStandings(matches, pointsTable);
-            await updatePointsTable(newTable);
+            if (pointsTable.length > 0) {
+                const newTable = recalculateStandings(matches, pointsTable);
+                await updatePointsTable(newTable);
+            }
 
             // 2. Player Stats
             if (players.length > 0) {
@@ -386,7 +390,7 @@ export const GameProvider = ({ children }) => {
                 toast.success("Points Table recalculated! (No players to update)");
             }
         } else {
-            toast.error("Not enough data to recalculate.");
+            toast.error("No Teams or Players data to recalculate.");
         }
     };
 
