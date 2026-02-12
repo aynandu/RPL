@@ -170,45 +170,45 @@ const Home = () => {
                                                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
 
                                                     {/* Team 1 Section (Left) */}
-                                                    <div className="flex items-center h-full pl-3 pr-4 bg-gradient-to-r from-blue-900/80 to-transparent relative z-10 min-w-[30%]">
+                                                    <div className="flex items-center h-full pl-3 pr-2 bg-gradient-to-r from-blue-900/80 to-transparent relative z-10 min-w-[25%]">
                                                         <div className="flex flex-col">
-                                                            <span className="text-yellow-400 font-black text-xs uppercase tracking-wider shadow-black drop-shadow-md leading-none mb-0.5">{team1}</span>
+                                                            <span className="text-yellow-400 font-black text-[10px] uppercase tracking-wider shadow-black drop-shadow-md leading-none mb-0.5">{team1}</span>
                                                             <div className="flex items-baseline gap-1">
-                                                                <span className="text-white font-mono font-bold text-lg leading-none shadow-black drop-shadow-lg">{t1s.runs}/{t1s.wickets}</span>
-                                                                <span className="text-gray-400 text-[10px] font-bold">({t1s.overs})</span>
+                                                                <span className="text-white font-mono font-bold text-sm leading-none shadow-black drop-shadow-lg">{t1s.runs}/{t1s.wickets}</span>
+                                                                <span className="text-gray-400 text-[9px] font-bold">({t1s.overs})</span>
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     {/* Center Status / Equation */}
-                                                    <div className="flex-1 flex items-center justify-center h-full relative z-10 px-2">
+                                                    <div className="flex-1 flex items-center justify-center h-full relative z-10 px-1">
                                                         {overlayText ? (
-                                                            <div className={`px-2 py-0.5 rounded bg-black/40 border border-white/5 backdrop-blur-sm max-w-[150px] flex justify-center`}>
+                                                            <div className={`px-2 py-0.5 rounded bg-black/40 border border-white/5 backdrop-blur-sm w-full max-w-[220px] flex justify-center`}>
                                                                 <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-wide leading-tight whitespace-normal break-words text-center ${status === 'live' ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
                                                                     {overlayText}
                                                                 </span>
                                                             </div>
                                                         ) : (
-                                                            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest bg-black/30 px-2 py-0.5 rounded">
+                                                            <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest bg-black/30 px-2 py-0.5 rounded">
                                                                 {status === 'live' ? '1st Innings' : status}
                                                             </span>
                                                         )}
                                                     </div>
 
                                                     {/* Team 2 Section (Right) */}
-                                                    <div className="flex items-center justify-end h-full pr-3 pl-4 bg-gradient-to-l from-purple-900/80 to-transparent relative z-10 min-w-[30%] text-right">
+                                                    <div className="flex items-center justify-end h-full pr-3 pl-2 bg-gradient-to-l from-purple-900/80 to-transparent relative z-10 min-w-[25%] text-right">
                                                         <div className="flex flex-col items-end">
-                                                            <span className="text-cyan-400 font-black text-xs uppercase tracking-wider shadow-black drop-shadow-md leading-none mb-0.5">{team2}</span>
+                                                            <span className="text-cyan-400 font-black text-[10px] uppercase tracking-wider shadow-black drop-shadow-md leading-none mb-0.5">{team2}</span>
                                                             <div className="flex items-baseline gap-1 justify-end">
-                                                                <span className="text-gray-400 text-[10px] font-bold">({t2s.overs})</span>
-                                                                <span className="text-white font-mono font-bold text-lg leading-none shadow-black drop-shadow-lg">{t2s.runs}/{t2s.wickets}</span>
+                                                                <span className="text-gray-400 text-[9px] font-bold">({t2s.overs})</span>
+                                                                <span className="text-white font-mono font-bold text-sm leading-none shadow-black drop-shadow-lg">{t2s.runs}/{t2s.wickets}</span>
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     {/* Decorative Divider Lines */}
-                                                    <div className="absolute left-[30%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
-                                                    <div className="absolute right-[30%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+                                                    <div className="absolute left-[25%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+                                                    <div className="absolute right-[25%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
                                                 </div>
                                             </div>
                                         );
