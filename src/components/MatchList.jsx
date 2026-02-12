@@ -75,12 +75,12 @@ const MatchCard = ({ match, onClick }) => {
                             // This implies we rely on innings1Overs.every(o => o.savedStats).
 
                             // Check if 1st Innings is complete OR 2nd innings has started
-                            // We now check if Team 2 has any overs or batting data
-                            const isSecondInningsStarted = (match.score.team2.overs > 0) || (match.secondInningsBatting && match.secondInningsBatting.length > 0);
+                            const matchOvers = parseInt(match.oversChoosen) || 20;
+                            const isTeam1AllOut = (match.score.team1.wickets || 0) >= 10;
+                            const isTeam1OversDone = (match.score.team1.overs || 0) >= matchOvers;
+                            const isTeam2ActuallyPlaying = (match.score.team2.overs || 0) > 0 || (match.score.team2.balls || 0) > 0 || (match.score.team2.runs || 0) > 0;
 
-                            const isFirstInningsDone = (match.innings1Overs &&
-                                match.innings1Overs.length > 0 &&
-                                match.innings1Overs.every(o => o.savedStats)) || isSecondInningsStarted;
+                            const isFirstInningsDone = isTeam1AllOut || isTeam1OversDone || isTeam2ActuallyPlaying;
 
                             if (isFirstInningsDone && match.status !== 'completed') {
                                 const target = (match.score.team1.runs || 0) + 1;
@@ -95,12 +95,22 @@ const MatchCard = ({ match, onClick }) => {
                         {(() => {
                             // Show equation: "Need X runs in Y balls"
                             // Condition: Live match, 1st innings done (Target exists), and 2nd innings started
-                            const isSecondInningsStarted = (match.score.team2.overs > 0) || (match.secondInningsBatting && match.secondInningsBatting.length > 0);
-                            const isFirstInningsDone = (match.innings1Overs && match.innings1Overs.length > 0 && match.innings1Overs.every(o => o.savedStats)) || isSecondInningsStarted;
+
+                            // Stricter check for First Innings Done
+                            const matchOvers = parseInt(match.oversChoosen) || 20;
+                            const isTeam1AllOut = (match.score.team1.wickets || 0) >= 10; // Assuming 10 wickets is all out
+                            const isTeam1OversDone = (match.score.team1.overs || 0) >= matchOvers;
+                            const isTeam2ActuallyPlaying = (match.score.team2.overs || 0) > 0 || (match.score.team2.balls || 0) > 0 || (match.score.team2.runs || 0) > 0;
+
+                            // Note: Pre-filling team 2 batters (secondInningsBatting.length > 0) should NOT trigger this.
+                            const isFirstInningsDone = isTeam1AllOut || isTeam1OversDone || isTeam2ActuallyPlaying;
+
+                            const isSecondInningsStarted = isFirstInningsDone; // If 1st is done, we assume we are in break or 2nd innings. 
+                            // Actually, to show "Need X runs" we assume 2nd innings is the context.
 
                             const t2Stats = match.score.team2;
 
-                            if (match.status === 'live' && isFirstInningsDone && isSecondInningsStarted) {
+                            if (match.status === 'live' && isFirstInningsDone) {
                                 const target = (match.score.team1.runs || 0) + 1;
                                 const runsNeeded = target - (t2Stats.runs || 0);
 

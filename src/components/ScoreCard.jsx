@@ -78,9 +78,12 @@ const ScoreCard = ({ match, onClose }) => {
 
                             {(() => {
                                 // Check if 1st Innings is complete
-                                const isFirstInningsDone = match.innings1Overs &&
-                                    match.innings1Overs.length > 0 &&
-                                    match.innings1Overs.every(o => o.savedStats);
+                                const matchOvers = parseInt(match.oversChoosen) || 20;
+                                const isTeam1AllOut = (match.score.team1.wickets || 0) >= 10;
+                                const isTeam1OversDone = (match.score.team1.overs || 0) >= matchOvers;
+                                const isTeam2ActuallyPlaying = (match.score.team2.overs || 0) > 0 || (match.score.team2.balls || 0) > 0 || (match.score.team2.runs || 0) > 0;
+
+                                const isFirstInningsDone = isTeam1AllOut || isTeam1OversDone || isTeam2ActuallyPlaying;
 
                                 if (isFirstInningsDone && match.status !== 'completed') {
                                     return (
@@ -130,10 +133,17 @@ const ScoreCard = ({ match, onClose }) => {
                     {/* Match Equation Banner (Outside Target Table) */}
                     {(() => {
                         const t2Stats = match.score.team2;
-                        const isSecondInningsStarted = t2Stats.overs > 0 || (match.batting && match.batting.length > 0 && match.status === 'live');
-                        const isFirstInningsDone = match.innings1Overs && match.innings1Overs.length > 0 && match.innings1Overs.every(o => o.savedStats);
 
-                        if (match.status === 'live' && isSecondInningsStarted && isFirstInningsDone) {
+                        // Strict Check logic (same as MatchList)
+                        const matchOvers = parseInt(match.oversChoosen) || 20;
+                        const isTeam1AllOut = (match.score.team1.wickets || 0) >= 10;
+                        const isTeam1OversDone = (match.score.team1.overs || 0) >= matchOvers;
+                        const isTeam2ActuallyPlaying = (match.score.team2.overs || 0) > 0 || (match.score.team2.balls || 0) > 0 || (match.score.team2.runs || 0) > 0;
+
+                        const isFirstInningsDone = isTeam1AllOut || isTeam1OversDone || isTeam2ActuallyPlaying;
+                        const isSecondInningsStarted = isFirstInningsDone; // Contextual
+
+                        if (match.status === 'live' && isFirstInningsDone) {
                             const target = (match.score.team1.runs || 0) + 1;
                             const runsNeeded = target - (t2Stats.runs || 0);
 
