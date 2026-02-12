@@ -451,7 +451,7 @@ const AdminDashboard = () => {
                             className="bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
                             title="Recalculate Points from Scratch"
                         >
-                            <RefreshCcw size={14} /> Refresh Standings
+                            <RefreshCcw size={14} /> Refresh Standings & Stats
                         </button>
                     </div>
                     <PointsTableEditor />

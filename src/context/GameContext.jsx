@@ -257,11 +257,135 @@ export const GameProvider = ({ children }) => {
             });
         } catch (err) { console.error("Update Match failed:", err); }
     };
-    const forceRecalculatePoints = () => {
+    // Helper: Recalculate All Player Stats
+    const recalculatePlayerStats = (currentMatches, currentPlayers) => {
+        // 1. Reset all players to 0 stats
+        const playerMap = {};
+        currentPlayers.forEach(p => {
+            playerMap[p.id] = {
+                ...p,
+                matches: 0,
+                runs: 0,
+                balls: 0,
+                fours: 0,
+                sixes: 0,
+                fifties: 0,
+                hundreds: 0,
+                wickets: 0,
+                overs: 0,
+                maidens: 0,
+                runsConceded: 0,
+                highestScore: 0,
+                // bestBowling: '0/0' // Keep existing or reset? Resetting implies calc from scratch. 
+                // Best bowling is complex to calc from scratch without parsing strings. 
+                // Let's reset numerical stats.
+            };
+        });
+
+        // 2. Process Matches
+        currentMatches.forEach(m => {
+            if (m.status !== 'completed') return;
+
+            const playersInMatch = new Set();
+
+            // Helper to find player ID
+            const activeTeam1 = m.team1;
+            const activeTeam2 = m.team2;
+
+            const resolvePlayer = (pObj, teamName) => {
+                if (!pObj || !pObj.name) return null;
+                // Try ID first
+                if (pObj.id && playerMap[pObj.id]) return pObj.id;
+                // Try Name + Team
+                const found = Object.values(playerMap).find(p => p.name === pObj.name && p.team === teamName);
+                if (found) return found.id;
+                // Try Name only (fallback)
+                const foundByName = Object.values(playerMap).find(p => p.name === pObj.name);
+                if (foundByName) return foundByName.id;
+                return null;
+            };
+
+            // Process Batting
+            const processBatting = (list, team) => {
+                if (!list) return;
+                list.forEach(b => {
+                    const pId = resolvePlayer(b, team);
+                    if (pId) {
+                        playersInMatch.add(pId);
+                        const p = playerMap[pId];
+                        const r = Number(b.runs) || 0;
+                        p.runs += r;
+                        p.balls += Number(b.balls) || 0;
+                        p.fours += Number(b.fours) || 0;
+                        p.sixes += Number(b.sixes) || 0;
+                        if (r >= 100) p.hundreds += 1;
+                        else if (r >= 50) p.fifties += 1;
+                        if (r > (p.highestScore || 0)) p.highestScore = r;
+                    }
+                });
+            };
+
+            // Process Bowling
+            const processBowling = (list, team) => {
+                if (!list) return;
+                list.forEach(b => {
+                    const pId = resolvePlayer(b, team);
+                    if (pId) {
+                        playersInMatch.add(pId);
+                        const p = playerMap[pId];
+                        p.wickets += Number(b.wickets) || 0;
+                        p.overs += Number(b.overs) || 0;
+                        p.maidens += Number(b.maidens) || 0;
+                        p.runsConceded += Number(b.runs) || 0;
+                    }
+                });
+            };
+
+            processBatting(m.batting, activeTeam1);
+            processBatting(m.secondInningsBatting, activeTeam2);
+            processBowling(m.bowling, activeTeam2); // Team 2 batted, so Team 1 bowled (Wait, m.bowling is usually first innings bowling)
+            // In ScoreUpdateForm: 
+            // Tab 1 (Team 1 Batting): Bowling data is Team 2 bowlers.
+            // Tab 2 (Team 2 Batting): Bowling data is Team 1 bowlers.
+            // So m.bowling = Team 2 bowlers (bowling to Team 1)
+            // m.secondInningsBowling = Team 1 bowlers (bowling to Team 2)
+            processBowling(m.bowling, activeTeam2);
+            processBowling(m.secondInningsBowling, activeTeam1);
+
+            // Increment Matches Played
+            playersInMatch.forEach(id => {
+                if (playerMap[id]) playerMap[id].matches += 1;
+            });
+        });
+
+        return Object.values(playerMap);
+    };
+
+    const forceRecalculatePoints = async () => {
         if (matches.length > 0 && pointsTable.length > 0) {
+            // 1. Points Table
             const newTable = recalculateStandings(matches, pointsTable);
-            updatePointsTable(newTable);
-            toast.success("Points Table recalculated successfully!");
+            await updatePointsTable(newTable);
+
+            // 2. Player Stats
+            if (players.length > 0) {
+                const newPlayers = recalculatePlayerStats(matches, players);
+                setPlayers(newPlayers); // Optimistic
+                // Batch update backend
+                try {
+                    await fetch(`${API_BASE}/players/batch`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newPlayers)
+                    });
+                    toast.success("Points Table & Player Stats recalculated!");
+                } catch (err) {
+                    console.error("Player Batch Update failed", err);
+                    toast.error("Points updated, but Player Stats failed.");
+                }
+            } else {
+                toast.success("Points Table recalculated! (No players to update)");
+            }
         } else {
             toast.error("Not enough data to recalculate.");
         }
