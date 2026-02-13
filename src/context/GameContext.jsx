@@ -11,7 +11,11 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 export const GameProvider = ({ children }) => {
     const { toast } = useUI();
     // State
+    // State
     const lastSettingsUpdate = React.useRef(0); // Timestamp of last local settings write
+    const lastMatchesUpdate = React.useRef(0); // Timestamp of last local matches write
+    const lastPlayersUpdate = React.useRef(0); // Timestamp of last local players write
+    const lastPointsTableUpdate = React.useRef(0); // Timestamp of last local points table write
     // State with Local Storage CacheHydration
     const [matches, setMatches] = useState(() => {
         try { return JSON.parse(localStorage.getItem('rpl_matches')) || []; } catch { return []; }
@@ -60,19 +64,32 @@ export const GameProvider = ({ children }) => {
             const settingsData = await settingsRes.json();
 
             // Batch Update State & Cache
+            // Batch Update State & Cache
             if (matchesData) {
-                setMatches(matchesData);
-                localStorage.setItem('rpl_matches', JSON.stringify(matchesData));
+                if (Date.now() - lastMatchesUpdate.current < 2000) {
+                    // Skip
+                } else {
+                    setMatches(matchesData);
+                    localStorage.setItem('rpl_matches', JSON.stringify(matchesData));
+                }
             }
 
             if (teamsData) {
-                setPointsTable(teamsData);
-                localStorage.setItem('rpl_pointsTable', JSON.stringify(teamsData));
+                if (Date.now() - lastPointsTableUpdate.current < 2000) {
+                    // Skip
+                } else {
+                    setPointsTable(teamsData);
+                    localStorage.setItem('rpl_pointsTable', JSON.stringify(teamsData));
+                }
             }
 
             if (playersData) {
-                setPlayers(playersData);
-                localStorage.setItem('rpl_players', JSON.stringify(playersData));
+                if (Date.now() - lastPlayersUpdate.current < 2000) {
+                    // Skip
+                } else {
+                    setPlayers(playersData);
+                    localStorage.setItem('rpl_players', JSON.stringify(playersData));
+                }
             }
 
             if (settingsData) {
@@ -505,6 +522,7 @@ export const GameProvider = ({ children }) => {
         const maxId = matches.length > 0 ? Math.max(...matches.map(m => m.id)) : 0;
         const newMatch = { ...match, id: maxId + 1 };
         setMatches(prev => [...prev, newMatch]);
+        lastMatchesUpdate.current = Date.now();
 
         try {
             await fetch(`${API_BASE}/matches`, {
@@ -522,6 +540,7 @@ export const GameProvider = ({ children }) => {
 
     const deleteMatch = async (id) => {
         setMatches(prev => prev.filter(m => m.id !== id));
+        lastMatchesUpdate.current = Date.now();
         try {
             await fetch(`${API_BASE}/matches/${id}`, { method: 'DELETE' });
             await fetchData();
@@ -539,6 +558,7 @@ export const GameProvider = ({ children }) => {
 
     const updatePointsTable = async (updatedTable) => {
         setPointsTable(updatedTable);
+        lastPointsTableUpdate.current = Date.now();
         try {
             await fetch(`${API_BASE}/teams/batch`, {
                 method: 'POST',
@@ -552,6 +572,7 @@ export const GameProvider = ({ children }) => {
 
     const deleteTeam = async (teamName) => {
         setPointsTable(prev => prev.filter(t => t.team !== teamName));
+        lastPointsTableUpdate.current = Date.now();
         try {
             await fetch(`${API_BASE}/teams/${encodeURIComponent(teamName)}`, { method: 'DELETE' });
             await fetchData();
@@ -566,6 +587,7 @@ export const GameProvider = ({ children }) => {
         const maxId = players.length > 0 ? Math.max(...players.map(p => p.id || 0)) : 0;
         const newPlayer = { ...player, id: maxId + 1 };
         setPlayers(prev => [...prev, newPlayer]);
+        lastPlayersUpdate.current = Date.now();
         try {
             await fetch(`${API_BASE}/players`, {
                 method: 'POST',
@@ -582,6 +604,7 @@ export const GameProvider = ({ children }) => {
 
     const updatePlayer = async (id, updates) => {
         setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+        lastPlayersUpdate.current = Date.now();
         try {
             await fetch(`${API_BASE}/players/${id}`, {
                 method: 'PUT',
@@ -626,6 +649,7 @@ export const GameProvider = ({ children }) => {
         // Prepare payload for backend (Full player objects or partials? Backend expects full Objects for bulk update in my impl)
         // Let's send the FULL updated player objects that changed
         const changedPlayers = updatedPlayers.filter(p => updates.some(u => u.playerId === p.id));
+        lastPlayersUpdate.current = Date.now();
         try {
             await fetch(`${API_BASE}/players/batch`, {
                 method: 'POST',
@@ -637,6 +661,7 @@ export const GameProvider = ({ children }) => {
 
     const deletePlayer = async (id) => {
         setPlayers(prev => prev.filter(p => p.id !== id));
+        lastPlayersUpdate.current = Date.now();
         try {
             await fetch(`${API_BASE}/players/${id}`, { method: 'DELETE' });
             await fetchData();
