@@ -41,6 +41,25 @@ const AdminDashboard = () => {
     const [titleSettings, setTitleSettings] = useState(tournamentTitle || { name: '', season: '' });
     const [localTicker, setLocalTicker] = useState('');
 
+    // Live Stream Local State (to prevent race conditions with polling)
+    const [localStreamUrl, setLocalStreamUrlState] = useState('');
+    const [localStreamUrl2, setLocalStreamUrl2State] = useState('');
+    const [localStreamUrl3, setLocalStreamUrl3State] = useState('');
+    const [localStreamUrl4, setLocalStreamUrl4State] = useState('');
+    const [localStreamUrl5, setLocalStreamUrl5State] = useState('');
+    const [localMatchId, setLocalMatchId] = useState('');
+    const [activeField, setActiveField] = useState(null);
+
+    // Sync Live Stream from Context (only if not editing)
+    React.useEffect(() => {
+        if (activeField !== 's1') setLocalStreamUrlState(liveStreamUrl || '');
+        if (activeField !== 's2') setLocalStreamUrl2State(liveStreamUrl2 || '');
+        if (activeField !== 's3') setLocalStreamUrl3State(liveStreamUrl3 || '');
+        if (activeField !== 's4') setLocalStreamUrl4State(liveStreamUrl4 || '');
+        if (activeField !== 's5') setLocalStreamUrl5State(liveStreamUrl5 || '');
+        if (activeField !== 'mid') setLocalMatchId(liveStreamMatchId || '');
+    }, [liveStreamUrl, liveStreamUrl2, liveStreamUrl3, liveStreamUrl4, liveStreamUrl5, liveStreamMatchId, activeField]);
+
     // Sync state when context loads
     React.useEffect(() => {
         if (tournamentTitle) setTitleSettings(tournamentTitle);
@@ -289,21 +308,30 @@ const AdminDashboard = () => {
                             <div className="flex gap-2">
                                 <input
                                     type="text"
-                                    value={liveStreamUrl}
-                                    onChange={(e) => setLiveStreamUrl(e.target.value)}
+                                    value={localStreamUrl}
+                                    onChange={(e) => setLocalStreamUrlState(e.target.value)}
+                                    onFocus={() => setActiveField('s1')}
+                                    onBlur={() => { setActiveField(null); setLiveStreamUrl(localStreamUrl); }}
                                     placeholder="Paste YouTube or Instagram URL 1"
                                     className="flex-[2] glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
                                 />
                                 <input
                                     type="number"
-                                    value={liveStreamMatchId}
-                                    onChange={(e) => setLiveStreamMatchId(e.target.value)}
+                                    value={localMatchId}
+                                    onChange={(e) => setLocalMatchId(e.target.value)}
+                                    onFocus={() => setActiveField('mid')}
+                                    onBlur={() => { setActiveField(null); setLiveStreamMatchId(localMatchId); }}
                                     placeholder="Match ID (Overlay)"
                                     className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600 text-center"
                                     title="Enter Match ID to show score overlay"
                                 />
                                 <button
-                                    onClick={() => { setLiveStreamUrl(''); setLiveStreamMatchId(''); }}
+                                    onClick={() => {
+                                        setLiveStreamUrl('');
+                                        setLiveStreamMatchId('');
+                                        setLocalStreamUrlState('');
+                                        setLocalMatchId('');
+                                    }}
                                     className="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
                                     title="Clear Stream & Overlay"
                                 >
@@ -318,13 +346,15 @@ const AdminDashboard = () => {
                             <div className="flex gap-2">
                                 <input
                                     type="text"
-                                    value={liveStreamUrl2}
-                                    onChange={(e) => setLiveStreamUrl2(e.target.value)}
+                                    value={localStreamUrl2}
+                                    onChange={(e) => setLocalStreamUrl2State(e.target.value)}
+                                    onFocus={() => setActiveField('s2')}
+                                    onBlur={() => { setActiveField(null); setLiveStreamUrl2(localStreamUrl2); }}
                                     placeholder="Paste YouTube or Instagram URL 2"
                                     className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
                                 />
                                 <button
-                                    onClick={() => setLiveStreamUrl2('')}
+                                    onClick={() => { setLiveStreamUrl2(''); setLocalStreamUrl2State(''); }}
                                     className="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
                                     title="Clear Stream"
                                 >
@@ -339,13 +369,15 @@ const AdminDashboard = () => {
                             <div className="flex gap-2">
                                 <input
                                     type="text"
-                                    value={liveStreamUrl3}
-                                    onChange={(e) => setLiveStreamUrl3(e.target.value)}
+                                    value={localStreamUrl3}
+                                    onChange={(e) => setLocalStreamUrl3State(e.target.value)}
+                                    onFocus={() => setActiveField('s3')}
+                                    onBlur={() => { setActiveField(null); setLiveStreamUrl3(localStreamUrl3); }}
                                     placeholder="Paste YouTube or Instagram URL 3"
                                     className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
                                 />
                                 <button
-                                    onClick={() => setLiveStreamUrl3('')}
+                                    onClick={() => { setLiveStreamUrl3(''); setLocalStreamUrl3State(''); }}
                                     className="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
                                     title="Clear Stream"
                                 >
@@ -360,13 +392,15 @@ const AdminDashboard = () => {
                             <div className="flex gap-2">
                                 <input
                                     type="text"
-                                    value={liveStreamUrl4}
-                                    onChange={(e) => setLiveStreamUrl4(e.target.value)}
+                                    value={localStreamUrl4}
+                                    onChange={(e) => setLocalStreamUrl4State(e.target.value)}
+                                    onFocus={() => setActiveField('s4')}
+                                    onBlur={() => { setActiveField(null); setLiveStreamUrl4(localStreamUrl4); }}
                                     placeholder="Paste YouTube or Instagram URL 4"
                                     className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
                                 />
                                 <button
-                                    onClick={() => setLiveStreamUrl4('')}
+                                    onClick={() => { setLiveStreamUrl4(''); setLocalStreamUrl4State(''); }}
                                     className="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
                                     title="Clear Stream"
                                 >
@@ -381,13 +415,15 @@ const AdminDashboard = () => {
                             <div className="flex gap-2">
                                 <input
                                     type="text"
-                                    value={liveStreamUrl5}
-                                    onChange={(e) => setLiveStreamUrl5(e.target.value)}
+                                    value={localStreamUrl5}
+                                    onChange={(e) => setLocalStreamUrl5State(e.target.value)}
+                                    onFocus={() => setActiveField('s5')}
+                                    onBlur={() => { setActiveField(null); setLiveStreamUrl5(localStreamUrl5); }}
                                     placeholder="Paste YouTube or Instagram URL 5"
                                     className="flex-1 glass-input p-2 rounded-lg text-sm text-white outline-none focus:border-purple-500/50 placeholder-gray-600"
                                 />
                                 <button
-                                    onClick={() => setLiveStreamUrl5('')}
+                                    onClick={() => { setLiveStreamUrl5(''); setLocalStreamUrl5State(''); }}
                                     className="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
                                     title="Clear Stream"
                                 >
