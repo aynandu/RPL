@@ -50,13 +50,13 @@ const BroadcastOverlay = ({ matchId }) => {
     return (
         <div className="w-full h-full flex items-end justify-center pb-4 animate-fade-in pointer-events-none">
             {/* Broadcast Style Overlay Container */}
-            <div className="flex items-center justify-between bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 border-t-2 border-yellow-500 shadow-2xl rounded-lg overflow-hidden relative h-12 w-full max-w-[95%] mx-auto">
+            <div className="flex items-center justify-between bg-black border-t-2 border-yellow-500 shadow-2xl rounded-lg overflow-hidden relative h-12 w-full max-w-[95%] mx-auto">
 
                 {/* Background Pattern/Texture (Optional) */}
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
 
                 {/* Team 1 Section (Left) */}
-                <div className="flex items-center h-full pl-3 pr-2 bg-gradient-to-r from-neutral-900/90 to-transparent relative z-10 min-w-[25%]">
+                <div className="flex items-center h-full pl-3 pr-2 bg-gradient-to-r from-black via-black/80 to-transparent relative z-10 min-w-[25%]">
                     <div className="flex flex-col">
                         <span className="text-yellow-400 font-black text-[10px] uppercase tracking-wider shadow-black drop-shadow-md leading-none mb-0.5">{team1}</span>
                         <div className="flex items-baseline gap-1">
@@ -82,7 +82,7 @@ const BroadcastOverlay = ({ matchId }) => {
                 </div>
 
                 {/* Team 2 Section (Right) */}
-                <div className="flex items-center justify-end h-full pr-3 pl-2 bg-gradient-to-l from-neutral-900/90 to-transparent relative z-10 min-w-[25%] text-right">
+                <div className="flex items-center justify-end h-full pr-3 pl-2 bg-gradient-to-l from-black via-black/80 to-transparent relative z-10 min-w-[25%] text-right">
                     <div className="flex flex-col items-end">
                         <span className="text-cyan-400 font-black text-[10px] uppercase tracking-wider shadow-black drop-shadow-md leading-none mb-0.5">{team2}</span>
                         <div className="flex items-baseline gap-1 justify-end">
