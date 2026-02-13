@@ -41,116 +41,116 @@ export const GameProvider = ({ children }) => {
     const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('rpl_is_admin') === 'true');
 
     // Fetch Data on Mount (Parallel & Caching)
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Parallel Fetching
-                const [matchesRes, teamsRes, playersRes, settingsRes] = await Promise.all([
-                    fetch(`${API_BASE}/matches`),
-                    fetch(`${API_BASE}/teams`),
-                    fetch(`${API_BASE}/players`),
-                    fetch(`${API_BASE}/settings`)
-                ]);
+    // Fetch Data Function (Reusable)
+    const fetchData = async () => {
+        try {
+            // Parallel Fetching
+            const [matchesRes, teamsRes, playersRes, settingsRes] = await Promise.all([
+                fetch(`${API_BASE}/matches`),
+                fetch(`${API_BASE}/teams`),
+                fetch(`${API_BASE}/players`),
+                fetch(`${API_BASE}/settings`)
+            ]);
 
-                // Parse Responses (Optimized: Start parsing as they arrive)
-                const matchesData = await matchesRes.json();
-                const teamsData = await teamsRes.json();
-                const playersData = await playersRes.json();
-                const settingsData = await settingsRes.json();
+            // Parse Responses (Optimized: Start parsing as they arrive)
+            const matchesData = await matchesRes.json();
+            const teamsData = await teamsRes.json();
+            const playersData = await playersRes.json();
+            const settingsData = await settingsRes.json();
 
-                // Batch Update State & Cache
-                if (matchesData) {
-                    setMatches(matchesData);
-                    localStorage.setItem('rpl_matches', JSON.stringify(matchesData));
-                }
-
-                if (teamsData) {
-                    setPointsTable(teamsData);
-                    localStorage.setItem('rpl_pointsTable', JSON.stringify(teamsData));
-                }
-
-                if (playersData) {
-                    setPlayers(playersData);
-                    localStorage.setItem('rpl_players', JSON.stringify(playersData));
-                }
-
-                if (settingsData) {
-                    // Title
-                    if (settingsData.tournamentTitle) {
-                        setTournamentTitle(settingsData.tournamentTitle);
-                        localStorage.setItem('rpl_tournamentTitle', JSON.stringify(settingsData.tournamentTitle));
-                    }
-
-                    // Stadiums
-                    if (settingsData.stadiums && settingsData.stadiums.length) {
-                        setStadiums(settingsData.stadiums);
-                        localStorage.setItem('rpl_stadiums', JSON.stringify(settingsData.stadiums));
-                    }
-
-                    // Overs Options
-                    if (settingsData.oversOptions && settingsData.oversOptions.length) {
-                        setOversOptions(settingsData.oversOptions);
-                        localStorage.setItem('rpl_oversOptions', JSON.stringify(settingsData.oversOptions));
-                    }
-
-                    // Scrolling Text
-                    if (settingsData.scrollingText) {
-                        setScrollingText(settingsData.scrollingText);
-                        localStorage.setItem('rpl_scrollingText', settingsData.scrollingText);
-                    }
-
-                    // Packed Streams
-                    if (settingsData.liveStreamUrl) {
-                        const parts = settingsData.liveStreamUrl.split('|');
-                        const s1 = parts[0] || '';
-                        const s2 = parts[1] !== undefined ? parts[1] : (settingsData.liveStreamUrl2 || '');
-                        const s3 = parts[2] || '';
-                        const s4 = parts[3] || '';
-                        const s5 = parts[4] || '';
-
-                        setLiveStreamUrl(s1);
-                        setLiveStreamUrl2(s2);
-                        setLiveStreamUrl3(s3);
-                        setLiveStreamUrl4(s4);
-                        setLiveStreamUrl5(s5);
-
-                        // Cache individual streams for fast restart
-                        localStorage.setItem('rpl_liveStreamUrl_1', s1);
-                        localStorage.setItem('rpl_liveStreamUrl_2', s2);
-                        localStorage.setItem('rpl_liveStreamUrl_3', s3);
-                        localStorage.setItem('rpl_liveStreamUrl_4', s4);
-                        localStorage.setItem('rpl_liveStreamUrl_5', s5);
-
-                    } else if (settingsData.liveStreamUrl2) {
-                        setLiveStreamUrl2(settingsData.liveStreamUrl2);
-                        localStorage.setItem('rpl_liveStreamUrl_2', settingsData.liveStreamUrl2);
-                    }
-
-                    // Match ID Overlay
-                    if (settingsData.liveStreamMatchId) {
-                        setLiveStreamMatchId(settingsData.liveStreamMatchId);
-                        localStorage.setItem('rpl_liveStreamMatchId', settingsData.liveStreamMatchId);
-                    }
-
-                    // Images
-                    if (settingsData.images && settingsData.images.length > 0) {
-                        setImages(settingsData.images);
-                    }
-                }
-
-                // Initial Seeding Logic (Simplistic)
-                if (matchesData.length === 0 && teamsData.length === 0) {
-                    // console.log("Seeding initial data..."); 
-                }
-
-            } catch (error) {
-                console.error("Failed to fetch initial data:", error);
+            // Batch Update State & Cache
+            if (matchesData) {
+                setMatches(matchesData);
+                localStorage.setItem('rpl_matches', JSON.stringify(matchesData));
             }
-        };
 
+            if (teamsData) {
+                setPointsTable(teamsData);
+                localStorage.setItem('rpl_pointsTable', JSON.stringify(teamsData));
+            }
+
+            if (playersData) {
+                setPlayers(playersData);
+                localStorage.setItem('rpl_players', JSON.stringify(playersData));
+            }
+
+            if (settingsData) {
+                // Title
+                if (settingsData.tournamentTitle) {
+                    setTournamentTitle(settingsData.tournamentTitle);
+                    localStorage.setItem('rpl_tournamentTitle', JSON.stringify(settingsData.tournamentTitle));
+                }
+
+                // Stadiums
+                if (settingsData.stadiums && settingsData.stadiums.length) {
+                    setStadiums(settingsData.stadiums);
+                    localStorage.setItem('rpl_stadiums', JSON.stringify(settingsData.stadiums));
+                }
+
+                // Overs Options
+                if (settingsData.oversOptions && settingsData.oversOptions.length) {
+                    setOversOptions(settingsData.oversOptions);
+                    localStorage.setItem('rpl_oversOptions', JSON.stringify(settingsData.oversOptions));
+                }
+
+                // Scrolling Text
+                if (settingsData.scrollingText) {
+                    setScrollingText(settingsData.scrollingText);
+                    localStorage.setItem('rpl_scrollingText', settingsData.scrollingText);
+                }
+
+                // Packed Streams
+                if (settingsData.liveStreamUrl) {
+                    const parts = settingsData.liveStreamUrl.split('|');
+                    const s1 = parts[0] || '';
+                    const s2 = parts[1] !== undefined ? parts[1] : (settingsData.liveStreamUrl2 || '');
+                    const s3 = parts[2] || '';
+                    const s4 = parts[3] || '';
+                    const s5 = parts[4] || '';
+
+                    setLiveStreamUrl(s1);
+                    setLiveStreamUrl2(s2);
+                    setLiveStreamUrl3(s3);
+                    setLiveStreamUrl4(s4);
+                    setLiveStreamUrl5(s5);
+
+                    // Cache individual streams for fast restart
+                    localStorage.setItem('rpl_liveStreamUrl_1', s1);
+                    localStorage.setItem('rpl_liveStreamUrl_2', s2);
+                    localStorage.setItem('rpl_liveStreamUrl_3', s3);
+                    localStorage.setItem('rpl_liveStreamUrl_4', s4);
+                    localStorage.setItem('rpl_liveStreamUrl_5', s5);
+
+                } else if (settingsData.liveStreamUrl2) {
+                    setLiveStreamUrl2(settingsData.liveStreamUrl2);
+                    localStorage.setItem('rpl_liveStreamUrl_2', settingsData.liveStreamUrl2);
+                }
+
+                // Match ID Overlay
+                if (settingsData.liveStreamMatchId) {
+                    setLiveStreamMatchId(settingsData.liveStreamMatchId);
+                    localStorage.setItem('rpl_liveStreamMatchId', settingsData.liveStreamMatchId);
+                }
+
+                // Images
+                if (settingsData.images && settingsData.images.length > 0) {
+                    setImages(settingsData.images);
+                }
+            }
+
+            // Initial Seeding Logic (Simplistic)
+            if (matchesData.length === 0 && teamsData.length === 0) {
+                // console.log("Seeding initial data..."); 
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch initial data:", error);
+        }
+    };
+
+    // Initial Fetch & Polling
+    useEffect(() => {
         fetchData();
-
-        // Polling for live updates (Optional but good for multi-user)
         const interval = setInterval(fetchData, 5000); // Poll every 5s
         return () => clearInterval(interval);
     }, []);
@@ -314,16 +314,19 @@ export const GameProvider = ({ children }) => {
             updatePointsTable(newTable);
 
             // 3. Trigger Player Stats Recalculation (AUTOMATIC UPDATE)
+            // 3. Trigger Player Stats Recalculation (AUTOMATIC UPDATE)
             if (players.length > 0) {
                 const newPlayers = recalculatePlayerStats(updatedMatches, players);
                 setPlayers(newPlayers); // Optimistic
-                // Persist to backend
+                // Persist to backend - AWAIT THIS to avoid race with next fetch
                 // We use the same logic as forceRecalculatePoints
-                fetch(`${API_BASE}/players/batch`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newPlayers)
-                }).catch(err => console.error("Auto-update Player Stats failed", err));
+                try {
+                    await fetch(`${API_BASE}/players/batch`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newPlayers)
+                    });
+                } catch (err) { console.error("Auto-update Player Stats failed", err); }
             }
         }
 
@@ -333,7 +336,12 @@ export const GameProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates)
             });
-        } catch (err) { console.error("Update Match failed:", err); }
+            await fetchData();
+            toast.success("Match updated successfully!");
+        } catch (err) {
+            console.error("Update Match failed:", err);
+            toast.error("Failed to update match");
+        }
     };
     // Helper: Recalculate All Player Stats
     const recalculatePlayerStats = (currentMatches, currentPlayers) => {
@@ -496,14 +504,24 @@ export const GameProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newMatch)
             });
-        } catch (err) { console.error("Add Match failed", err); }
+            await fetchData();
+            toast.success("Match added successfully!");
+        } catch (err) {
+            console.error("Add Match failed", err);
+            toast.error("Failed to add match");
+        }
     };
 
     const deleteMatch = async (id) => {
         setMatches(prev => prev.filter(m => m.id !== id));
         try {
             await fetch(`${API_BASE}/matches/${id}`, { method: 'DELETE' });
-        } catch (err) { console.error("Delete Match failed", err); }
+            await fetchData();
+            toast.success("Match deleted successfully!");
+        } catch (err) {
+            console.error("Delete Match failed", err);
+            toast.error("Failed to delete match");
+        }
     };
 
     const updateImages = (newImages) => {
@@ -519,6 +537,8 @@ export const GameProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedTable)
             });
+            await fetchData();
+            // toast.success("Points Table updated"); // Optional, might be too noisy
         } catch (err) { console.error("Update Table failed", err); }
     };
 
@@ -526,7 +546,12 @@ export const GameProvider = ({ children }) => {
         setPointsTable(prev => prev.filter(t => t.team !== teamName));
         try {
             await fetch(`${API_BASE}/teams/${encodeURIComponent(teamName)}`, { method: 'DELETE' });
-        } catch (err) { console.error("Delete Team failed", err); }
+            await fetchData();
+            toast.success("Team deleted successfully!");
+        } catch (err) {
+            console.error("Delete Team failed", err);
+            toast.error("Failed to delete team");
+        }
     };
 
     const addPlayer = async (player) => {
@@ -539,7 +564,12 @@ export const GameProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newPlayer)
             });
-        } catch (err) { console.error("Add Player failed", err); }
+            await fetchData();
+            toast.success("Player added successfully!");
+        } catch (err) {
+            console.error("Add Player failed", err);
+            toast.error("Failed to add player");
+        }
     };
 
     const updatePlayer = async (id, updates) => {
@@ -550,7 +580,12 @@ export const GameProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates)
             });
-        } catch (err) { console.error("Update Player failed", err); }
+            await fetchData();
+            toast.success("Player updated successfully!");
+        } catch (err) {
+            console.error("Update Player failed", err);
+            toast.error("Failed to update player");
+        }
     };
 
     const batchUpdatePlayers = async (updates) => {
@@ -596,7 +631,12 @@ export const GameProvider = ({ children }) => {
         setPlayers(prev => prev.filter(p => p.id !== id));
         try {
             await fetch(`${API_BASE}/players/${id}`, { method: 'DELETE' });
-        } catch (err) { console.error("Delete Player failed", err); }
+            await fetchData();
+            toast.success("Player deleted successfully!");
+        } catch (err) {
+            console.error("Delete Player failed", err);
+            toast.error("Failed to delete player");
+        }
     };
 
     // Helper to update Settings
