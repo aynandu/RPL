@@ -11,72 +11,136 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 export const GameProvider = ({ children }) => {
     const { toast } = useUI();
     // State
-    const [matches, setMatches] = useState([]);
-    const [images, setImages] = useState(INITIAL_IMAGES); // Still local/stub for now or fetch if implemented
-    const [pointsTable, setPointsTable] = useState([]);
-    const [players, setPlayers] = useState([]);
-    const [tournamentTitle, setTournamentTitle] = useState({ name: 'Revenue Premier League', season: 'S2' });
-    const [stadiums, setStadiums] = useState(['Indoor Stadium, Pramdom', 'Turf, Pathanamthitta']);
-    const [oversOptions, setOversOptions] = useState(['6 Over', '8 Over', '10 Over']);
-    const [liveStreamUrl, setLiveStreamUrl] = useState('');
-    const [liveStreamUrl2, setLiveStreamUrl2] = useState('');
-    const [liveStreamUrl3, setLiveStreamUrl3] = useState('');
-    const [liveStreamUrl4, setLiveStreamUrl4] = useState('');
-    const [liveStreamUrl5, setLiveStreamUrl5] = useState('');
-    const [liveStreamMatchId, setLiveStreamMatchId] = useState(''); // New: Match ID for Overlay
-    const [scrollingText, setScrollingText] = useState('');
-    const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('rpl_is_admin') === 'true'); // Keep auth local for now
+    // State with Local Storage CacheHydration
+    const [matches, setMatches] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('rpl_matches')) || []; } catch { return []; }
+    });
+    const [images, setImages] = useState(INITIAL_IMAGES);
+    const [pointsTable, setPointsTable] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('rpl_pointsTable')) || []; } catch { return []; }
+    });
+    const [players, setPlayers] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('rpl_players')) || []; } catch { return []; }
+    });
+    const [tournamentTitle, setTournamentTitle] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('rpl_tournamentTitle')) || { name: 'Revenue Premier League', season: 'S2' }; } catch { return { name: 'Revenue Premier League', season: 'S2' }; }
+    });
+    const [stadiums, setStadiums] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('rpl_stadiums')) || ['Indoor Stadium, Pramdom', 'Turf, Pathanamthitta']; } catch { return ['Indoor Stadium, Pramdom', 'Turf, Pathanamthitta']; }
+    });
+    const [oversOptions, setOversOptions] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('rpl_oversOptions')) || ['6 Over', '8 Over', '10 Over']; } catch { return ['6 Over', '8 Over', '10 Over']; }
+    });
+    const [liveStreamUrl, setLiveStreamUrl] = useState(() => localStorage.getItem('rpl_liveStreamUrl_1') || '');
+    const [liveStreamUrl2, setLiveStreamUrl2] = useState(() => localStorage.getItem('rpl_liveStreamUrl_2') || '');
+    const [liveStreamUrl3, setLiveStreamUrl3] = useState(() => localStorage.getItem('rpl_liveStreamUrl_3') || '');
+    const [liveStreamUrl4, setLiveStreamUrl4] = useState(() => localStorage.getItem('rpl_liveStreamUrl_4') || '');
+    const [liveStreamUrl5, setLiveStreamUrl5] = useState(() => localStorage.getItem('rpl_liveStreamUrl_5') || '');
+    const [liveStreamMatchId, setLiveStreamMatchId] = useState(() => localStorage.getItem('rpl_liveStreamMatchId') || '');
+    const [scrollingText, setScrollingText] = useState(() => localStorage.getItem('rpl_scrollingText') || '');
+    const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('rpl_is_admin') === 'true');
 
-    // Fetch Data on Mount
+    // Fetch Data on Mount (Parallel & Caching)
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Matches
-                const matchesRes = await fetch(`${API_BASE}/matches`);
+                // Parallel Fetching
+                const [matchesRes, teamsRes, playersRes, settingsRes] = await Promise.all([
+                    fetch(`${API_BASE}/matches`),
+                    fetch(`${API_BASE}/teams`),
+                    fetch(`${API_BASE}/players`),
+                    fetch(`${API_BASE}/settings`)
+                ]);
+
+                // Parse Responses (Optimized: Start parsing as they arrive)
                 const matchesData = await matchesRes.json();
-                setMatches(matchesData);
-
-                // 2. Teams (Points Table)
-                const teamsRes = await fetch(`${API_BASE}/teams`);
                 const teamsData = await teamsRes.json();
-                setPointsTable(teamsData);
-
-                // 3. Players
-                const playersRes = await fetch(`${API_BASE}/players`);
                 const playersData = await playersRes.json();
-                setPlayers(playersData);
-
-                // 4. Settings
-                const settingsRes = await fetch(`${API_BASE}/settings`);
                 const settingsData = await settingsRes.json();
+
+                // Batch Update State & Cache
+                if (matchesData) {
+                    setMatches(matchesData);
+                    localStorage.setItem('rpl_matches', JSON.stringify(matchesData));
+                }
+
+                if (teamsData) {
+                    setPointsTable(teamsData);
+                    localStorage.setItem('rpl_pointsTable', JSON.stringify(teamsData));
+                }
+
+                if (playersData) {
+                    setPlayers(playersData);
+                    localStorage.setItem('rpl_players', JSON.stringify(playersData));
+                }
+
                 if (settingsData) {
-                    if (settingsData.tournamentTitle) setTournamentTitle(settingsData.tournamentTitle);
-                    if (settingsData.stadiums && settingsData.stadiums.length) setStadiums(settingsData.stadiums);
-                    if (settingsData.oversOptions && settingsData.oversOptions.length) setOversOptions(settingsData.oversOptions);
-                    // Packed Storage for Live Streams (Fixes persistence for 3,4,5)
+                    // Title
+                    if (settingsData.tournamentTitle) {
+                        setTournamentTitle(settingsData.tournamentTitle);
+                        localStorage.setItem('rpl_tournamentTitle', JSON.stringify(settingsData.tournamentTitle));
+                    }
+
+                    // Stadiums
+                    if (settingsData.stadiums && settingsData.stadiums.length) {
+                        setStadiums(settingsData.stadiums);
+                        localStorage.setItem('rpl_stadiums', JSON.stringify(settingsData.stadiums));
+                    }
+
+                    // Overs Options
+                    if (settingsData.oversOptions && settingsData.oversOptions.length) {
+                        setOversOptions(settingsData.oversOptions);
+                        localStorage.setItem('rpl_oversOptions', JSON.stringify(settingsData.oversOptions));
+                    }
+
+                    // Scrolling Text
+                    if (settingsData.scrollingText) {
+                        setScrollingText(settingsData.scrollingText);
+                        localStorage.setItem('rpl_scrollingText', settingsData.scrollingText);
+                    }
+
+                    // Packed Streams
                     if (settingsData.liveStreamUrl) {
                         const parts = settingsData.liveStreamUrl.split('|');
-                        setLiveStreamUrl(parts[0] || '');
-                        // Check if packed string is used, otherwise fall back to discrete field for 2
-                        setLiveStreamUrl2(parts[1] !== undefined ? parts[1] : (settingsData.liveStreamUrl2 || ''));
-                        setLiveStreamUrl3(parts[2] || '');
-                        setLiveStreamUrl4(parts[3] || '');
-                        setLiveStreamUrl5(parts[4] || '');
+                        const s1 = parts[0] || '';
+                        const s2 = parts[1] !== undefined ? parts[1] : (settingsData.liveStreamUrl2 || '');
+                        const s3 = parts[2] || '';
+                        const s4 = parts[3] || '';
+                        const s5 = parts[4] || '';
+
+                        setLiveStreamUrl(s1);
+                        setLiveStreamUrl2(s2);
+                        setLiveStreamUrl3(s3);
+                        setLiveStreamUrl4(s4);
+                        setLiveStreamUrl5(s5);
+
+                        // Cache individual streams for fast restart
+                        localStorage.setItem('rpl_liveStreamUrl_1', s1);
+                        localStorage.setItem('rpl_liveStreamUrl_2', s2);
+                        localStorage.setItem('rpl_liveStreamUrl_3', s3);
+                        localStorage.setItem('rpl_liveStreamUrl_4', s4);
+                        localStorage.setItem('rpl_liveStreamUrl_5', s5);
+
                     } else if (settingsData.liveStreamUrl2) {
-                        // Legacy fallback
                         setLiveStreamUrl2(settingsData.liveStreamUrl2);
+                        localStorage.setItem('rpl_liveStreamUrl_2', settingsData.liveStreamUrl2);
                     }
-                    if (settingsData.liveStreamMatchId) setLiveStreamMatchId(settingsData.liveStreamMatchId); // Restore Match ID
+
+                    // Match ID Overlay
+                    if (settingsData.liveStreamMatchId) {
+                        setLiveStreamMatchId(settingsData.liveStreamMatchId);
+                        localStorage.setItem('rpl_liveStreamMatchId', settingsData.liveStreamMatchId);
+                    }
+
+                    // Images
                     if (settingsData.images && settingsData.images.length > 0) {
                         setImages(settingsData.images);
                     }
-                    if (settingsData.scrollingText) setScrollingText(settingsData.scrollingText);
                 }
 
                 // Initial Seeding Logic (Simplistic)
                 if (matchesData.length === 0 && teamsData.length === 0) {
                     // console.log("Seeding initial data..."); 
-                    // Ideally call a seed API, but for now we start empty or manual entry
                 }
 
             } catch (error) {
@@ -87,7 +151,7 @@ export const GameProvider = ({ children }) => {
         fetchData();
 
         // Polling for live updates (Optional but good for multi-user)
-        const interval = setInterval(fetchData, 5000);
+        const interval = setInterval(fetchData, 5000); // Poll every 5s
         return () => clearInterval(interval);
     }, []);
 
@@ -623,12 +687,28 @@ export const GameProvider = ({ children }) => {
         setPlayers([]);
         setImages(INITIAL_IMAGES); // Force client-side default immediately
         setLiveStreamMatchId(''); // Reset Overlay
+
+        // Clear Local Cache to prevent hydration of stale data
+        localStorage.removeItem('rpl_matches');
+        localStorage.removeItem('rpl_pointsTable');
+        localStorage.removeItem('rpl_players');
+        localStorage.removeItem('rpl_tournamentTitle');
+        localStorage.removeItem('rpl_stadiums');
+        localStorage.removeItem('rpl_oversOptions');
+        localStorage.removeItem('rpl_liveStreamUrl_1');
+        localStorage.removeItem('rpl_liveStreamUrl_2');
+        localStorage.removeItem('rpl_liveStreamUrl_3');
+        localStorage.removeItem('rpl_liveStreamUrl_4');
+        localStorage.removeItem('rpl_liveStreamUrl_5');
+        localStorage.removeItem('rpl_liveStreamMatchId');
+        localStorage.removeItem('rpl_scrollingText');
+
         try {
             await fetch(`${API_BASE}/wipe`, { method: 'DELETE' });
             // FORCE UPDATE BACKEND with correct defaults immediately after wipe
             // This prevents the backend from serving its own (old) defaults on next fetch
             await updateSettings({ images: INITIAL_IMAGES, liveStreamMatchId: '' });
-            toast.success("All data wiped. Images reset to Cloudinary defaults.");
+            toast.success("All data wiped. Cache & Backend reset.");
         } catch (err) { console.error("Wipe failed", err); }
     };
 
