@@ -11,6 +11,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 export const GameProvider = ({ children }) => {
     const { toast } = useUI();
     // State
+    const lastSettingsUpdate = React.useRef(0); // Timestamp of last local settings write
     // State with Local Storage CacheHydration
     const [matches, setMatches] = useState(() => {
         try { return JSON.parse(localStorage.getItem('rpl_matches')) || []; } catch { return []; }
@@ -75,66 +76,73 @@ export const GameProvider = ({ children }) => {
             }
 
             if (settingsData) {
-                // Title
-                if (settingsData.tournamentTitle) {
-                    setTournamentTitle(settingsData.tournamentTitle);
-                    localStorage.setItem('rpl_tournamentTitle', JSON.stringify(settingsData.tournamentTitle));
-                }
+                // SKIP updating settings if we wrote recently (grace period of 2s)
+                // This prevents the background poll (which might return stale data) from overwriting
+                // our optimistic local state.
+                if (Date.now() - lastSettingsUpdate.current < 2000) {
+                    // console.log("Skipping settings update due to recent write");
+                } else {
+                    // Title
+                    if (settingsData.tournamentTitle) {
+                        setTournamentTitle(settingsData.tournamentTitle);
+                        localStorage.setItem('rpl_tournamentTitle', JSON.stringify(settingsData.tournamentTitle));
+                    }
 
-                // Stadiums
-                if (settingsData.stadiums && settingsData.stadiums.length) {
-                    setStadiums(settingsData.stadiums);
-                    localStorage.setItem('rpl_stadiums', JSON.stringify(settingsData.stadiums));
-                }
+                    // Stadiums
+                    if (settingsData.stadiums && settingsData.stadiums.length) {
+                        setStadiums(settingsData.stadiums);
+                        localStorage.setItem('rpl_stadiums', JSON.stringify(settingsData.stadiums));
+                    }
 
-                // Overs Options
-                if (settingsData.oversOptions && settingsData.oversOptions.length) {
-                    setOversOptions(settingsData.oversOptions);
-                    localStorage.setItem('rpl_oversOptions', JSON.stringify(settingsData.oversOptions));
-                }
+                    // Overs Options
+                    if (settingsData.oversOptions && settingsData.oversOptions.length) {
+                        setOversOptions(settingsData.oversOptions);
+                        localStorage.setItem('rpl_oversOptions', JSON.stringify(settingsData.oversOptions));
+                    }
 
-                // Scrolling Text
-                if (settingsData.scrollingText) {
-                    setScrollingText(settingsData.scrollingText);
-                    localStorage.setItem('rpl_scrollingText', settingsData.scrollingText);
-                }
+                    // Scrolling Text
+                    if (settingsData.scrollingText) {
+                        setScrollingText(settingsData.scrollingText);
+                        localStorage.setItem('rpl_scrollingText', settingsData.scrollingText);
+                    }
 
-                // Packed Streams
-                if (settingsData.liveStreamUrl) {
-                    const parts = settingsData.liveStreamUrl.split('|');
-                    const s1 = parts[0] || '';
-                    const s2 = parts[1] !== undefined ? parts[1] : (settingsData.liveStreamUrl2 || '');
-                    const s3 = parts[2] || '';
-                    const s4 = parts[3] || '';
-                    const s5 = parts[4] || '';
+                    // Packed Streams
+                    if (settingsData.liveStreamUrl) {
+                        const parts = settingsData.liveStreamUrl.split('|');
+                        const s1 = parts[0] || '';
+                        const s2 = parts[1] !== undefined ? parts[1] : (settingsData.liveStreamUrl2 || '');
+                        const s3 = parts[2] || '';
+                        const s4 = parts[3] || '';
+                        const s5 = parts[4] || '';
 
-                    setLiveStreamUrl(s1);
-                    setLiveStreamUrl2(s2);
-                    setLiveStreamUrl3(s3);
-                    setLiveStreamUrl4(s4);
-                    setLiveStreamUrl5(s5);
+                        setLiveStreamUrl(s1);
+                        setLiveStreamUrl2(s2);
+                        setLiveStreamUrl3(s3);
+                        setLiveStreamUrl4(s4);
+                        setLiveStreamUrl5(s5);
 
-                    // Cache individual streams for fast restart
-                    localStorage.setItem('rpl_liveStreamUrl_1', s1);
-                    localStorage.setItem('rpl_liveStreamUrl_2', s2);
-                    localStorage.setItem('rpl_liveStreamUrl_3', s3);
-                    localStorage.setItem('rpl_liveStreamUrl_4', s4);
-                    localStorage.setItem('rpl_liveStreamUrl_5', s5);
+                        // Cache individual streams for fast restart
+                        localStorage.setItem('rpl_liveStreamUrl_1', s1);
+                        localStorage.setItem('rpl_liveStreamUrl_2', s2);
+                        localStorage.setItem('rpl_liveStreamUrl_3', s3);
+                        localStorage.setItem('rpl_liveStreamUrl_4', s4);
+                        localStorage.setItem('rpl_liveStreamUrl_5', s5);
 
-                } else if (settingsData.liveStreamUrl2) {
-                    setLiveStreamUrl2(settingsData.liveStreamUrl2);
-                    localStorage.setItem('rpl_liveStreamUrl_2', settingsData.liveStreamUrl2);
-                }
+                    } else if (settingsData.liveStreamUrl2) {
+                        setLiveStreamUrl2(settingsData.liveStreamUrl2);
+                        localStorage.setItem('rpl_liveStreamUrl_2', settingsData.liveStreamUrl2);
+                    }
 
-                // Match ID Overlay
-                if (settingsData.liveStreamMatchId) {
-                    setLiveStreamMatchId(settingsData.liveStreamMatchId);
-                    localStorage.setItem('rpl_liveStreamMatchId', settingsData.liveStreamMatchId);
-                }
+                    // Match ID Overlay
+                    if (settingsData.liveStreamMatchId) {
+                        setLiveStreamMatchId(settingsData.liveStreamMatchId);
+                        localStorage.setItem('rpl_liveStreamMatchId', settingsData.liveStreamMatchId);
+                    }
 
-                // Images
-                if (settingsData.images && settingsData.images.length > 0) {
-                    setImages(settingsData.images);
+                    // Images
+                    if (settingsData.images && settingsData.images.length > 0) {
+                        setImages(settingsData.images);
+                    }
                 }
             }
 
@@ -640,13 +648,18 @@ export const GameProvider = ({ children }) => {
     };
 
     // Helper to update Settings
+    // Helper to update Settings
     const updateSettings = async (newSettings) => {
+        // Set timestamp to block immediate overwrite from background poll
+        lastSettingsUpdate.current = Date.now();
         try {
             await fetch(`${API_BASE}/settings`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newSettings)
             });
+            // Force refresh after write completes to get authoritative state
+            await fetchData();
         } catch (err) { console.error("Settings Update failed", err); }
     };
 
