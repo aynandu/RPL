@@ -338,6 +338,30 @@ const AdminDashboard = () => {
                                     <Trash2 size={18} />
                                 </button>
                             </div>
+
+                            {/* OBS Overlay Link Generator */}
+                            {liveStreamMatchId && (
+                                <div className="mt-2 animate-fade-in">
+                                    <div className="flex items-center gap-2 bg-black/40 p-2 rounded-lg border border-purple-500/30">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-[10px] text-gray-500 uppercase font-bold mb-0.5">OBS Browser Source URL</div>
+                                            <div className="text-xs text-purple-200 truncate font-mono select-all">
+                                                {`${window.location.origin}/overlay/${liveStreamMatchId}`}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(`${window.location.origin}/overlay/${liveStreamMatchId}`);
+                                                toast.success("Overlay URL copied to clipboard!");
+                                            }}
+                                            className="text-purple-400 hover:text-white text-xs font-bold px-3 py-1.5 bg-purple-500/20 rounded-md hover:bg-purple-500 transition-all whitespace-nowrap border border-purple-500/20"
+                                            title="Copy link for OBS"
+                                        >
+                                            Copy Link
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Stream 2 */}

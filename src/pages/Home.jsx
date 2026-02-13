@@ -7,6 +7,7 @@ import PointsTable from '../components/PointsTable';
 import AllTeams from '../components/AllTeams';
 import LeadershipTables from '../components/LeadershipTables';
 import Footer from '../components/Footer';
+import BroadcastOverlay from '../components/BroadcastOverlay';
 import { useGame } from '../context/GameContext';
 
 const Home = () => {
@@ -116,103 +117,12 @@ const Home = () => {
                                     ></iframe>
 
                                     {/* Score Overlay for Stream 1 (index 0) */}
-                                    {index === 0 && liveStreamMatchId && (() => {
-                                        const overlayMatch = matches.find(m => m.id === parseInt(liveStreamMatchId));
-                                        if (!overlayMatch) return null;
-
-                                        const { team1, team2, score, status, oversChoosen } = overlayMatch;
-                                        const t1s = score.team1;
-                                        const t2s = score.team2;
-
-                                        // --- LOGIC FROM MatchList.jsx ---
-                                        let overlayText = "";
-
-                                        // 1. Calculate Status Checks
-                                        const matchOvers = parseInt(oversChoosen) || 20;
-                                        const isTeam1AllOut = (t1s.wickets || 0) >= 10;
-                                        const isTeam1OversDone = (t1s.overs || 0) >= matchOvers;
-                                        const isTeam2ActuallyPlaying = (t2s.overs || 0) > 0 || (t2s.balls || 0) > 0 || (t2s.runs || 0) > 0;
-                                        const isFirstInningsDone = isTeam1AllOut || isTeam1OversDone || isTeam2ActuallyPlaying;
-
-                                        // 2. LIVE STATUS: Show Equation "Need X runs in Y balls"
-                                        if (status === 'live' && isFirstInningsDone) {
-                                            const target = (t1s.runs || 0) + 1;
-                                            const runsNeeded = Math.max(0, target - (t2s.runs || 0));
-
-                                            // Balls Left Calculation (Fallback Logic)
-                                            // Ideally we use detailed over data if available, but simple calc is:
-                                            const totalBalls = matchOvers * 6;
-                                            const currentOvers = Number(t2s.overs || 0);
-                                            const completedOvers = Math.floor(currentOvers);
-                                            const ballsInCurrentOver = Math.round((currentOvers - completedOvers) * 10);
-                                            const ballsBowled = (completedOvers * 6) + ballsInCurrentOver;
-                                            const ballsLeft = Math.max(0, totalBalls - ballsBowled);
-
-                                            overlayText = `Need ${runsNeeded} runs in ${ballsLeft} balls`;
-                                        }
-                                        // 3. COMPLETED STATUS: Show Result
-                                        else if (status === 'completed') {
-                                            if (t1s.runs > t2s.runs) {
-                                                overlayText = `${team1} won by ${t1s.runs - t2s.runs} runs`;
-                                            } else if (t2s.runs > t1s.runs) {
-                                                overlayText = `${team2} won by ${10 - t2s.wickets} wickets`;
-                                            } else {
-                                                overlayText = "Match Tied";
-                                            }
-                                        }
-
-                                        return (
-                                            <div className="absolute bottom-4 left-4 right-4 animate-fade-in pointer-events-none">
-                                                {/* Broadcast Style Overlay Container */}
-                                                <div className="flex items-center justify-between bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-t-2 border-yellow-500 shadow-2xl rounded-lg overflow-hidden relative h-12">
-
-                                                    {/* Background Pattern/Texture (Optional) */}
-                                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-
-                                                    {/* Team 1 Section (Left) */}
-                                                    <div className="flex items-center h-full pl-3 pr-2 bg-gradient-to-r from-blue-900/80 to-transparent relative z-10 min-w-[25%]">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-yellow-400 font-black text-[10px] uppercase tracking-wider shadow-black drop-shadow-md leading-none mb-0.5">{team1}</span>
-                                                            <div className="flex items-baseline gap-1">
-                                                                <span className="text-white font-mono font-bold text-sm leading-none shadow-black drop-shadow-lg">{t1s.runs}/{t1s.wickets}</span>
-                                                                <span className="text-gray-400 text-[9px] font-bold">({t1s.overs})</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Center Status / Equation */}
-                                                    <div className="flex-1 flex items-center justify-center h-full relative z-10 px-1">
-                                                        {overlayText ? (
-                                                            <div className={`px-2 py-0.5 rounded bg-black/40 border border-white/5 backdrop-blur-sm w-full max-w-[220px] flex justify-center`}>
-                                                                <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-wide leading-tight whitespace-normal break-words text-center ${status === 'live' ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
-                                                                    {overlayText}
-                                                                </span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest bg-black/30 px-2 py-0.5 rounded">
-                                                                {status === 'live' ? '1st Innings' : status}
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Team 2 Section (Right) */}
-                                                    <div className="flex items-center justify-end h-full pr-3 pl-2 bg-gradient-to-l from-purple-900/80 to-transparent relative z-10 min-w-[25%] text-right">
-                                                        <div className="flex flex-col items-end">
-                                                            <span className="text-cyan-400 font-black text-[10px] uppercase tracking-wider shadow-black drop-shadow-md leading-none mb-0.5">{team2}</span>
-                                                            <div className="flex items-baseline gap-1 justify-end">
-                                                                <span className="text-gray-400 text-[9px] font-bold">({t2s.overs})</span>
-                                                                <span className="text-white font-mono font-bold text-sm leading-none shadow-black drop-shadow-lg">{t2s.runs}/{t2s.wickets}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Decorative Divider Lines */}
-                                                    <div className="absolute left-[25%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
-                                                    <div className="absolute right-[25%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
+                                    {/* Score Overlay for Stream 1 */}
+                                    {index === 0 && liveStreamMatchId && (
+                                        <div className="absolute inset-0 pointer-events-none z-20">
+                                            <BroadcastOverlay />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Home from './pages/Home';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
+import OverlayView from './pages/OverlayView';
 import { useGame } from './context/GameContext';
 
 const ProtectedRoute = ({ children }) => {
@@ -26,6 +27,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/overlay/:matchId" element={<OverlayView />} />
         </Routes>
       </div>
     </Router>
