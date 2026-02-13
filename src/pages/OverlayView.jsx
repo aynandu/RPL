@@ -11,7 +11,7 @@ const OverlayView = () => {
                 OBS Browser Source usually has a transparent background by default if body is transparent.
                 We ensure the container pushes content to the bottom.
             */}
-            <BroadcastOverlay matchId={matchId} />
+            <BroadcastOverlay matchId={matchId === 'live' ? null : matchId} />
         </div>
     );
 };

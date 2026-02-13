@@ -344,22 +344,25 @@ const AdminDashboard = () => {
                                 <div className="mt-2 animate-fade-in">
                                     <div className="flex items-center gap-2 bg-black/40 p-2 rounded-lg border border-purple-500/30">
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-[10px] text-gray-500 uppercase font-bold mb-0.5">OBS Browser Source URL</div>
+                                            <div className="text-[10px] text-gray-500 uppercase font-bold mb-0.5">OBS Browser Source URL (Dynamic)</div>
                                             <div className="text-xs text-purple-200 truncate font-mono select-all">
-                                                {`${window.location.origin}/overlay/${liveStreamMatchId}`}
+                                                {`${window.location.origin}/overlay/live`}
                                             </div>
                                         </div>
                                         <button
                                             onClick={() => {
-                                                navigator.clipboard.writeText(`${window.location.origin}/overlay/${liveStreamMatchId}`);
-                                                toast.success("Overlay URL copied to clipboard!");
+                                                navigator.clipboard.writeText(`${window.location.origin}/overlay/live`);
+                                                toast.success("Dynamic Overlay URL copied!");
                                             }}
                                             className="text-purple-400 hover:text-white text-xs font-bold px-3 py-1.5 bg-purple-500/20 rounded-md hover:bg-purple-500 transition-all whitespace-nowrap border border-purple-500/20"
-                                            title="Copy link for OBS"
+                                            title="This link automatically follows the Match ID set above"
                                         >
                                             Copy Link
                                         </button>
                                     </div>
+                                    <p className="text-[9px] text-gray-500 mt-1 italic pl-1">
+                                        * Use this link in OBS. It will auto-update when you change the Match ID here.
+                                    </p>
                                 </div>
                             )}
                         </div>
